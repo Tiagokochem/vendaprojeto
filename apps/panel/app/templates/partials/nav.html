@@ -1,0 +1,8 @@
+<aside class="w-56 shrink-0 border-r border-stone-200 bg-white p-4 flex flex-col gap-1">
+  <p class="text-xs font-semibold uppercase tracking-widest text-teal-700 px-2 mb-3">Vendaprojeto</p>
+  <a href="/app" class="rounded-lg px-3 py-2 text-sm hover:bg-stone-100 {% if request.url.path == '/app' %}bg-stone-100 font-medium{% endif %}">Dashboard</a>
+  <a href="/app/flow-studio" class="rounded-lg px-3 py-2 text-sm hover:bg-stone-100 {% if request.url.path == '/app/flow-studio' %}bg-stone-100 font-medium{% endif %}">Flow Studio</a>
+  <span class="rounded-lg px-3 py-2 text-sm text-stone-400">Conversas (em breve)</span>
+  <span class="rounded-lg px-3 py-2 text-sm text-stone-400">Fila (em breve)</span>
+  <span class="rounded-lg px-3 py-2 text-sm text-stone-400">KB (em breve)</span>
+</aside>

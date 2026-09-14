@@ -1,0 +1,42 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: vendaprojeto_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-venda}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-venda_dev_pass}
+      POSTGRES_DB: ${POSTGRES_DB:-vendaprojeto}
+    ports:
+      - "${POSTGRES_PORT:-5433}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./sql/001_init.sql:/docker-entrypoint-initdb.d/001_init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-venda} -d ${POSTGRES_DB:-vendaprojeto}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  panel:
+    build:
+      context: .
+      dockerfile: apps/panel/Dockerfile
+    container_name: vendaprojeto_panel
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file: .env
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: "5432"
+    ports:
+      - "${PANEL_PORT:-8088}:8088"
+    volumes:
+      - ./apps/panel/app:/app/app:ro
+      - ./packages:/app/packages:ro
+      - ./sql:/app/sql:ro
+
+volumes:
+  postgres_data:

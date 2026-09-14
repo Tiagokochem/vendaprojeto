@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Dashboard · Vendaprojeto{% endblock %}
+{% block body %}
+<div class="min-h-screen flex">
+  {% include "partials/nav.html" %}
+  <main class="flex-1 p-8">
+    <header class="flex items-start justify-between gap-4">
+      <div>
+        <h1 class="text-2xl font-semibold tracking-tight">Dashboard</h1>
+        <p class="text-sm text-stone-500 mt-1">{{ tenant_name }} · {{ user_email }}</p>
+      </div>
+      <form method="post" action="/logout">
+        <button class="text-sm text-stone-500 hover:text-stone-800">Sair</button>
+      </form>
+    </header>
+
+    <p class="mt-4 text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">{{ note }}</p>
+
+    <section class="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {% for label, key in [("Enviados hoje", "sent_today"), ("Fila pending", "pending"), ("Respostas 24h", "replies_24h"), ("Escalonamentos", "escalations_open")] %}
+      <div class="rounded-xl bg-white border border-stone-200 p-5">
+        <p class="text-xs uppercase tracking-wide text-stone-500">{{ label }}</p>
+        <p class="mt-2 text-3xl font-semibold tabular-nums">{{ stats[key] }}</p>
+      </div>
+      {% endfor %}
+    </section>
+
+    <section class="mt-10 rounded-xl bg-white border border-stone-200 p-6">
+      <h2 class="font-medium">Próximos passos</h2>
+      <ol class="mt-3 list-decimal list-inside text-sm text-stone-600 space-y-1">
+        <li>Manter calibração no lab <code class="text-xs bg-stone-100 px-1 rounded">vendas</code></li>
+        <li>Ligar Postgres e migrar schema multi-tenant</li>
+        <li>Conversas, fila e Flow Studio com dados reais</li>
+        <li>QR WhatsApp por tenant (Evolution)</li>
+      </ol>
+    </section>
+  </main>
+</div>
+{% endblock %}
