@@ -107,7 +107,7 @@ Jobs (header `X-Panel-Secret`): ver [docs/CRONS.md](docs/CRONS.md).
 
 ## Packs prontos
 
-clínica · loja · food · serviço · imobiliária · educação · advocacia · pet  
+clínica · loja · food · salão · estética · oficina · serviço · imobiliária · educação · advocacia · pet
 
 Cada um: dores, CTAs, oferta e FAQ no wizard.
 
