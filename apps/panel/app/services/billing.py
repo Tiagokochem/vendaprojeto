@@ -112,17 +112,31 @@ def effective_plan(tenant_id: str) -> str:
 
 
 def effective_daily_cap(tenant_id: str, tenant_daily_limit: int | None) -> int:
-    """Teto do plano, limitado pelo aquecimento do chip quando ativo."""
+    """Teto = min(plano, limite do tenant, pack do nicho, aquecimento)."""
     plan = effective_plan(tenant_id)
     plan_cap = plan_daily_cap(plan, tenant_daily_limit)
+    caps = [plan_cap]
+    try:
+        from app import db
+        from hermes_core.patterns import get_pack
+
+        row = db.fetch_one(
+            "SELECT niches FROM agente.tenant_settings WHERE tenant_id = %s",
+            (tenant_id,),
+        )
+        niches = list((row or {}).get("niches") or [])
+        if niches:
+            caps.append(int(get_pack(niches[0]).daily_sends))
+    except Exception:  # noqa: BLE001
+        pass
     try:
         from app.services import warmup as warmup_svc
 
         st = warmup_svc.state_for_tenant(tenant_id)
-        return max(1, min(plan_cap, int(st["cap"])))
+        caps.append(int(st["cap"]))
     except Exception:  # noqa: BLE001
-        return plan_cap
-
+        pass
+    return max(1, min(caps))
 
 def start_trial(tenant_id: str, *, days: int = TRIAL_DAYS) -> dict | None:
     from app import db

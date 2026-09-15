@@ -12,10 +12,14 @@ O Vendaprojeto **não** tem flow builder. “Fluxo” = **playbook do nicho** + 
 | who_are_you | quem é você / é bot | Se apresenta + pergunta se continua |
 | whats_this | o que é isso / de onde tirou | Explica + oferece parar |
 | not_now | agora não / depois | Soft close + FU 7 dias |
-| price | preço / valor | Qualifying + escala + FU 24h |
+| price | preço / valor | Qualifying + escala (sem FU automático; humano assume) |
 | schedule | marcar / horário | Stage meeting + FU 24h |
 | objection | já tenho / sem interesse / caro | Qualifying + FU 72h |
 | interest | interessado / faz sentido | Qualifying + FU 24h |
+
+Handoff (`escalate` / humano): pausa o bot e **não** agenda follow-up outbound (evita fila morta com `bot_paused`).  
+`devolver_bot` reativa o bot **e** fecha escalações abertas.  
+`meeting_24h` pode sair mesmo com bot pausado (só confirmação de reunião).
 
 ## Outcomes do operador (1 toque)
 

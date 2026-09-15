@@ -257,6 +257,14 @@ async def thread_action(
             """,
             (tid, phone),
         )
+        db.execute(
+            """
+            UPDATE agente.escalations
+            SET status = 'handled', handled_at = NOW()
+            WHERE tenant_id = %s AND phone = %s AND status = 'open'
+            """,
+            (tid, phone),
+        )
     else:
         return RedirectResponse(f"/app/conversas/{phone}?err=acao", status_code=303)
     return RedirectResponse(f"/app/conversas/{phone}", status_code=303)

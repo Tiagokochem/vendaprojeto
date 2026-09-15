@@ -262,3 +262,14 @@ def run_skill(
         )
 
     return None
+
+
+def skill_schedules_followup(skill: SkillHit | None) -> bool:
+    """FU automático só para skills sem handoff."""
+    if not skill or not skill.followup_hours:
+        return False
+    if skill.escalate:
+        return False
+    if skill.intent in ("human", "stop", "wrong_number"):
+        return False
+    return True

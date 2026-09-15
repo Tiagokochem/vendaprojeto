@@ -158,16 +158,22 @@ def process_due(tenant_id: str, limit: int = 5) -> list[dict]:
 
         gate = policy.assert_send_allowed(tenant_id, claimed["phone"])
         if not gate.allowed:
-            db.execute(
-                """
-                UPDATE agente.follow_ups
-                SET status = 'pending', due_at = NOW() + INTERVAL '1 hour'
-                WHERE id = %s
-                """,
-                (claimed["id"],),
+            # Confirmação de reunião: envia mesmo com bot pausado / escalação
+            allow_meeting = (
+                claimed["kind"] == "meeting_24h"
+                and gate.reason in ("bot_paused", "escalation_open")
             )
-            out.append({"id": claimed["id"], "status": "deferred", "detail": gate.reason})
-            continue
+            if not allow_meeting:
+                db.execute(
+                    """
+                    UPDATE agente.follow_ups
+                    SET status = 'pending', due_at = NOW() + INTERVAL '1 hour'
+                    WHERE id = %s
+                    """,
+                    (claimed["id"],),
+                )
+                out.append({"id": claimed["id"], "status": "deferred", "detail": gate.reason})
+                continue
 
         if policy.is_do_not_contact(tenant_id, claimed["phone"]):
             db.execute(

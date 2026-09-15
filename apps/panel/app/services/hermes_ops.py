@@ -586,8 +586,14 @@ def handle_inbound(tenant_id: str, phone: str, text: str) -> dict:
             (tenant_id, phone),
         )
 
-    # Auto follow-up por cadência de estágio
-    if not smoke_mode and send.ok and not (skill and skill.followup_hours):
+    # Auto follow-up por cadência de estágio (nunca em escalate/handoff)
+    if (
+        not smoke_mode
+        and send.ok
+        and not result.escalate
+        and not (skill and skill.followup_hours)
+        and not (skill and skill.intent in ("human", "stop", "wrong_number"))
+    ):
         from hermes_core.cadence import next_followup_for_stage
         from app.services import followups
 
@@ -638,6 +644,12 @@ def _apply_skill_effects(tenant_id: str, phone: str, skill) -> None:
             (skill.tags, tenant_id, phone),
         )
 
+    # Handoff humano: não agenda FU (bot pausado / escalação aberta bloquearia o envio)
+    from hermes_core.skills import skill_schedules_followup
+
+    if not skill_schedules_followup(skill):
+        return
+
     if skill.followup_hours:
         from hermes_core.cadence import cadence_for_intent
 
@@ -648,6 +660,7 @@ def _apply_skill_effects(tenant_id: str, phone: str, skill) -> None:
             kind=step.kind if step else "n1",
             hours=step.hours if step else skill.followup_hours,
         )
+
 
 
 def apply_outcome(

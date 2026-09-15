@@ -111,6 +111,11 @@ async def wizard_submit(
     if qs == qe:
         qs, qe = 9, 18
 
+    from hermes_core.patterns import get_pack
+
+    pack_cap = int(get_pack(niche).daily_sends)
+    daily = max(1, min(int(daily_limit), pack_cap, 15))
+
     db.execute(
         """
         INSERT INTO agente.tenant_settings (
@@ -142,7 +147,7 @@ async def wizard_submit(
             portfolio_url.strip() or None,
             [niche],
             city_list,
-            max(1, min(int(daily_limit), 15)),
+            daily,
             qs,
             qe,
             max(0, min(int(capture_every_hours), 168)),

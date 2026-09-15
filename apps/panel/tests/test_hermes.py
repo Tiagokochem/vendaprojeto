@@ -69,11 +69,15 @@ def test_skill_wrong_number():
     assert s and s.intent == "wrong_number" and "dnc" in s.tags
 
 
-def test_skill_who_and_not_now():
-    assert detect_intent("quem é você?") == "who_are_you"
-    assert detect_intent("agora não, obrigado") == "not_now"
-    s = run_skill(text="agora não", display_name="Ana", lead_name="João")
-    assert s and s.intent == "not_now" and s.followup_hours == 168
+def test_skill_fu_gate():
+    from hermes_core.skills import run_skill, skill_schedules_followup
+
+    price = run_skill(text="quanto custa?", display_name="Ana", niche="clinica")
+    human = run_skill(text="quero falar com humano", display_name="Ana")
+    not_now = run_skill(text="agora não", display_name="Ana")
+    assert price and price.escalate and not skill_schedules_followup(price)
+    assert human and not skill_schedules_followup(human)
+    assert not_now and skill_schedules_followup(not_now)
 
 
 def test_outbound_uses_pack_opening():
