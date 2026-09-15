@@ -1,8 +1,40 @@
-<aside class="w-56 shrink-0 border-r border-stone-200 bg-white p-4 flex flex-col gap-1">
-  <p class="text-xs font-semibold uppercase tracking-widest text-teal-700 px-2 mb-3">Vendaprojeto</p>
-  <a href="/app" class="rounded-lg px-3 py-2 text-sm hover:bg-stone-100 {% if request.url.path == '/app' %}bg-stone-100 font-medium{% endif %}">Dashboard</a>
-  <a href="/app/flow-studio" class="rounded-lg px-3 py-2 text-sm hover:bg-stone-100 {% if request.url.path == '/app/flow-studio' %}bg-stone-100 font-medium{% endif %}">Flow Studio</a>
-  <span class="rounded-lg px-3 py-2 text-sm text-stone-400">Conversas (em breve)</span>
-  <span class="rounded-lg px-3 py-2 text-sm text-stone-400">Fila (em breve)</span>
-  <span class="rounded-lg px-3 py-2 text-sm text-stone-400">KB (em breve)</span>
+<aside class="w-56 shrink-0 border-r border-stone-200 bg-white p-4 flex flex-col gap-1 min-h-screen">
+  {% set path = request.url.path %}
+  {% set advanced = request.session.get('ui_mode') == 'advanced' %}
+  <p class="text-xs font-semibold uppercase tracking-widest text-teal-700 px-2 mb-1">Vendaprojeto</p>
+  <p class="text-[10px] text-stone-400 px-2 mb-3">Nicho + WhatsApp. Sem montar fluxo.</p>
+
+  <a href="/app" class="rounded-lg px-3 py-2 text-sm hover:bg-stone-100 {% if path == '/app' %}bg-stone-100 font-medium{% endif %}">Início</a>
+  <a href="/app/conversas" class="rounded-lg px-3 py-2 text-sm hover:bg-stone-100 {% if path.startswith('/app/conversas') %}bg-stone-100 font-medium{% endif %}">Conversas</a>
+  <a href="/app/whatsapp" class="rounded-lg px-3 py-2 text-sm hover:bg-stone-100 {% if path.startswith('/app/whatsapp') %}bg-stone-100 font-medium{% endif %}">WhatsApp</a>
+  <a href="/app/comecar" class="rounded-lg px-3 py-2 text-sm hover:bg-stone-100 {% if path.startswith('/app/comecar') %}bg-stone-100 font-medium{% endif %}">Meu negócio</a>
+  <a href="/app/aprendizados" class="rounded-lg px-3 py-2 text-sm hover:bg-stone-100 {% if path.startswith('/app/aprendizados') %}bg-stone-100 font-medium{% endif %}">Aprendizados</a>
+  <a href="/app/billing" class="rounded-lg px-3 py-2 text-sm hover:bg-stone-100 {% if path.startswith('/app/billing') %}bg-stone-100 font-medium{% endif %}">Plano</a>
+
+  {% if advanced %}
+  <div class="my-2 border-t border-stone-100"></div>
+  <p class="text-[10px] uppercase tracking-wide text-stone-400 px-2 mb-1">Avançado</p>
+  <a href="/app/fila" class="rounded-lg px-3 py-2 text-sm hover:bg-stone-100 {% if path.startswith('/app/fila') %}bg-stone-100 font-medium{% endif %}">Fila</a>
+  <a href="/app/contatos" class="rounded-lg px-3 py-2 text-sm hover:bg-stone-100 {% if path.startswith('/app/contatos') %}bg-stone-100 font-medium{% endif %}">Contatos</a>
+  <a href="/app/escalonamentos" class="rounded-lg px-3 py-2 text-sm hover:bg-stone-100 {% if path.startswith('/app/escalonamentos') %}bg-stone-100 font-medium{% endif %}">Escalonamentos</a>
+  <a href="/app/kb" class="rounded-lg px-3 py-2 text-sm hover:bg-stone-100 {% if path.startswith('/app/kb') %}bg-stone-100 font-medium{% endif %}">KB</a>
+  <a href="/app/auditoria" class="rounded-lg px-3 py-2 text-sm hover:bg-stone-100 {% if path.startswith('/app/auditoria') %}bg-stone-100 font-medium{% endif %}">Auditoria</a>
+  <a href="/app/privacidade" class="rounded-lg px-3 py-2 text-sm hover:bg-stone-100 {% if path.startswith('/app/privacidade') %}bg-stone-100 font-medium{% endif %}">Privacidade</a>
+  <a href="/app/flow-studio" class="rounded-lg px-3 py-2 text-sm hover:bg-stone-100 {% if path.startswith('/app/flow-studio') %}bg-stone-100 font-medium{% endif %}">Flow Studio</a>
+  <a href="/app/config" class="rounded-lg px-3 py-2 text-sm hover:bg-stone-100 {% if path.startswith('/app/config') %}bg-stone-100 font-medium{% endif %}">Config detalhada</a>
+  {% endif %}
+
+  <div class="mt-auto pt-4 border-t border-stone-100">
+    {% if advanced %}
+    <form method="post" action="/app/modo">
+      <input type="hidden" name="mode" value="simple" />
+      <button class="w-full text-left rounded-lg px-3 py-2 text-xs text-stone-500 hover:bg-stone-100">Voltar ao modo simples</button>
+    </form>
+    {% else %}
+    <form method="post" action="/app/modo">
+      <input type="hidden" name="mode" value="advanced" />
+      <button class="w-full text-left rounded-lg px-3 py-2 text-xs text-stone-500 hover:bg-stone-100">Mostrar avançado</button>
+    </form>
+    {% endif %}
+  </div>
 </aside>

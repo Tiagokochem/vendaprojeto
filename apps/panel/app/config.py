@@ -5,7 +5,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=(".env", "../../.env"),
+        env_file=(".env", "../../.env", "/app/.env"),
         env_file_encoding="utf-8",
         extra="ignore",
     )
@@ -22,6 +22,16 @@ class Settings(BaseSettings):
     postgres_db: str = "vendaprojeto"
     postgres_host: str = "localhost"
     postgres_port: int = 5433
+
+    openai_api_key: str = ""
+    openai_model: str = "gpt-4o-mini"
+
+    evolution_base_url: str = "http://127.0.0.1:8081"
+    authentication_api_key: str = ""
+    webhook_hmac_secret: str = ""
+
+    apify_token: str = ""
+    apify_actor_id: str = "compass/crawler-google-places"
 
     @property
     def database_url(self) -> str:

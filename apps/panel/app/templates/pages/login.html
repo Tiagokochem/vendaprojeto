@@ -5,7 +5,7 @@
   <div class="w-full max-w-md rounded-2xl bg-white shadow-sm border border-stone-200 p-8">
     <p class="text-xs uppercase tracking-widest text-teal-700 font-semibold">Vendaprojeto</p>
     <h1 class="mt-2 text-2xl font-semibold tracking-tight">Entrar no painel</h1>
-    <p class="mt-1 text-sm text-stone-500">SaaS de prospecção WhatsApp (scaffold)</p>
+    <p class="mt-1 text-sm text-stone-500">SaaS de prospecção WhatsApp</p>
 
     {% if error %}
     <p class="mt-4 rounded-lg bg-red-50 text-red-700 text-sm px-3 py-2">{{ error }}</p>
@@ -27,7 +27,7 @@
         Entrar
       </button>
     </form>
-    <p class="mt-4 text-xs text-stone-400">Demo: {{ demo_email }} / senha do .env</p>
+    <p class="mt-4 text-xs text-stone-400">Demo: {{ demo_email }} / senha do .env · <a href="/signup" class="underline">Criar conta</a> · <a href="/" class="underline">Início</a></p>
   </div>
 </main>
 {% endblock %}

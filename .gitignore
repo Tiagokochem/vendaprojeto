@@ -1,17 +1,36 @@
+# Secrets e ambiente local
 .env
+.env.local
+.env.*.local
+!.env.example
+
+# Python
 .venv/
 venv/
 __pycache__/
-*.pyc
-*.pyo
+*.py[cod]
+*$py.class
+*.egg-info/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
-.idea/
-.vscode/
-*.egg-info/
 dist/
 build/
+
+# IDE / OS
+.idea/
+.vscode/
 .DS_Store
+*.swp
+*~
+
+# Runtime / dados
 node_modules/
 postgres_data/
+*.log
+.coverage
+htmlcov/
+
+# Cursor / agent
+.cursor/
+agent-transcripts/

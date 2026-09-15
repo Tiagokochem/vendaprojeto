@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Vendaprojeto — Prospecção no WhatsApp sem montar fluxo</title>
+  <meta name="description" content="Playbook pronto, WhatsApp conectado, ritmo diário. O bot prospecta; você assume os quentes." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/css/landing.css" />
+</head>
+<body class="lp">
+  <header class="lp-top">
+    <a class="lp-brand-mini" href="/">Vendaprojeto</a>
+    <nav class="lp-nav">
+      <a href="/login">Entrar</a>
+      <a class="lp-nav-cta" href="/signup">Começar</a>
+    </nav>
+  </header>
+
+  <section class="lp-hero" aria-label="Apresentação">
+    <div class="lp-hero-bg" aria-hidden="true"></div>
+    <div class="lp-hero-grain" aria-hidden="true"></div>
+    <div class="lp-hero-inner">
+      <p class="lp-brand anim-rise">Vendaprojeto</p>
+      <h1 class="lp-headline anim-rise delay-1">Prospecção no WhatsApp<br />sem montar fluxo.</h1>
+      <p class="lp-lede anim-rise delay-2">
+        Escolha o nicho, conecte o zap, defina o ritmo. O Hermes envia, responde e escala — você assume só o que precisa de você.
+      </p>
+      <div class="lp-ctas anim-rise delay-3">
+        <a class="lp-btn-primary" href="/signup">Criar conta grátis</a>
+        <a class="lp-btn-ghost" href="/login">Já tenho conta</a>
+      </div>
+    </div>
+    <div class="lp-hero-visual anim-fade" aria-hidden="true">
+      <div class="lp-phone">
+        <div class="lp-phone-bar"></div>
+        <div class="lp-bubble out">Oi! Sou Ana. Muitos consultórios perdem horário com falta no dia — consigo ajudar com lembrete automático. Faz sentido?</div>
+        <div class="lp-bubble in">Quanto custa?</div>
+        <div class="lp-bubble out">Depende do volume de agenda — um humano te passa a faixa. Prefere amanhã de manhã?</div>
+        <div class="lp-chip">→ Escalado pra você</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="lp-section" id="como">
+    <h2 class="lp-h2">Um caminho. Sem canvas.</h2>
+    <p class="lp-section-lede">Playbook do nicho + meta do dia + skills fechadas. Não é flow builder.</p>
+    <ol class="lp-steps">
+      <li><span>01</span><strong>Meu negócio</strong> — nicho, oferta, ritmo</li>
+      <li><span>02</span><strong>WhatsApp</strong> — conectar e smoke test</li>
+      <li><span>03</span><strong>No ar</strong> — fila, follow-ups, você nos quentes</li>
+    </ol>
+  </section>
+
+  <section class="lp-section lp-section-alt" id="nichos">
+    <h2 class="lp-h2">Padrões prontos que funcionam</h2>
+    <p class="lp-section-lede">Packs com dor, oferta, CTA e FAQ seed — calibrados pra negócio local BR.</p>
+    <ul class="lp-packs">
+      {% for p in packs %}
+      <li>
+        <strong>{{ p.label }}</strong>
+        <span>{{ p.blurb }}</span>
+      </li>
+      {% endfor %}
+    </ul>
+  </section>
+
+  <section class="lp-section" id="promessa">
+    <h2 class="lp-h2">O que sobe o nível</h2>
+    <p class="lp-section-lede">Aprendizado só com aprovação humana. Feriados BR. Anti-ban. Trial Pro.</p>
+    <ul class="lp-promise">
+      <li>Resultado do dia: enviados, respostas, reuniões</li>
+      <li>Handoff rico quando precisa de você</li>
+      <li>KB que cresce com o que você responde</li>
+      <li>Quiet hours, DNC e proteção contra prompt injection</li>
+    </ul>
+    <div class="lp-ctas lp-ctas-end">
+      <a class="lp-btn-primary" href="/signup">Começar agora</a>
+    </div>
+  </section>
+
+    <footer class="lp-foot">
+    <p>Vendaprojeto</p>
+    <p><a href="/login">Painel</a> · <a href="/signup">Criar conta</a></p>
+  </footer>
+</body>
+</html>

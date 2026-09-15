@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}WhatsApp · Vendaprojeto{% endblock %}
+{% block body %}
+<div class="min-h-screen flex">
+  {% include "partials/nav.html" %}
+  <main class="flex-1 p-8 max-w-2xl">
+    {% include "partials/status_bar.html" %}
+
+    {% set step = step or 2 %}
+    <ol class="mt-4 flex gap-2 text-[11px] uppercase tracking-wide">
+      {% for n, label in [(1,'Negócio'),(2,'WhatsApp'),(3,'Teste'),(4,'No ar')] %}
+      <li class="flex-1 rounded-lg px-2 py-1.5 text-center
+        {% if step == n %}bg-teal-700 text-white
+        {% elif step > n %}bg-teal-100 text-teal-800
+        {% else %}bg-stone-200 text-stone-500{% endif %}">{{ n }}. {{ label }}</li>
+      {% endfor %}
+    </ol>
+
+    <h1 class="mt-6 text-2xl font-semibold tracking-tight">Conectar WhatsApp</h1>
+    <p class="text-sm text-stone-500 mt-1">Passo 2 · depois teste o bot com um oi</p>
+
+    <div class="mt-6 rounded-xl border border-stone-200 bg-white p-6 space-y-4">
+      {% if request.query_params.get('onboarding') %}
+      <p class="text-sm text-teal-800 bg-teal-50 border border-teal-200 rounded-lg px-3 py-2">
+        Negócio salvo. Conecte o WhatsApp e mande um oi para validar o bot (passo 3).
+      </p>
+      {% endif %}
+
+      {% if settings and settings.evo_status == 'open' and not settings.smoke_ok %}
+      <p class="text-sm text-amber-900 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+        WhatsApp conectado. <strong>Mande “oi” deste número para a instância</strong> —
+        o Hermes responde e libera os envios do dia.
+      </p>
+      {% endif %}
+
+      {% if settings and settings.smoke_ok %}
+      <p class="text-sm text-teal-800 bg-teal-50 border border-teal-200 rounded-lg px-3 py-2">
+        Bot validado. Envios do dia liberados.
+        <a href="/app" class="underline font-medium">Ir ao início</a>
+      </p>
+      {% endif %}
+
+      <p class="text-sm"><span class="text-stone-500">Instância:</span> <code class="text-xs bg-stone-100 px-1 rounded">{{ instance }}</code></p>
+      <p class="text-sm"><span class="text-stone-500">Status:</span>
+        <span class="font-medium">{{ settings.evo_status if settings else 'disconnected' }}</span>
+      </p>
+
+      {% if not evolution_configured %}
+      <p class="text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+        Evolution API não configurada neste ambiente. Use “Simular open” e depois “Simular smoke”.
+      </p>
+      {% endif %}
+
+      {% if live %}
+      <pre class="text-xs bg-stone-50 border border-stone-100 rounded-lg p-3 overflow-auto">{{ live }}</pre>
+      {% endif %}
+
+      <div class="flex flex-wrap gap-2">
+        <form method="post" action="/app/whatsapp/connect">
+          <button class="rounded-lg bg-teal-700 text-white px-4 py-2 text-sm">Criar / conectar</button>
+        </form>
+        <form method="post" action="/app/whatsapp/sync">
+          <button class="rounded-lg border border-stone-200 px-4 py-2 text-sm">Sincronizar status</button>
+        </form>
+        {% if not evolution_configured %}
+        <form method="post" action="/app/whatsapp/simulate-open">
+          <button class="rounded-lg border border-stone-200 px-4 py-2 text-sm">Simular open (dev)</button>
+        </form>
+        <form method="post" action="/app/whatsapp/simulate-smoke">
+          <button class="rounded-lg border border-stone-200 px-4 py-2 text-sm">Simular smoke (dev)</button>
+        </form>
+        {% endif %}
+        <form method="post" action="/app/whatsapp/disconnect">
+          <button class="rounded-lg border border-stone-200 px-4 py-2 text-sm">Desconectar</button>
+        </form>
+      </div>
+      {% if sync_detail %}
+      <p class="text-xs text-stone-400">Sync: {{ sync_detail }}</p>
+      {% endif %}
+
+      <p class="text-xs text-stone-400">
+        Webhook inbound: <code>/webhook/evolution/{{ user.tenant_id }}</code>
+      </p>
+    </div>
+  </main>
+</div>
+{% endblock %}

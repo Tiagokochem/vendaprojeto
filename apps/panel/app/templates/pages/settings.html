@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Config · Vendaprojeto{% endblock %}
+{% block body %}
+<div class="min-h-screen flex">
+  {% include "partials/nav.html" %}
+  <main class="flex-1 p-8 max-w-3xl">
+    <h1 class="text-2xl font-semibold tracking-tight">Plano de negócio</h1>
+    <p class="text-sm text-stone-500 mt-1">Identidade, nichos e limites do tenant</p>
+
+    {% if saved %}
+    <p class="mt-4 rounded-lg bg-teal-50 text-teal-800 text-sm px-3 py-2">Salvo.</p>
+    {% endif %}
+
+    <form method="post" action="/app/config" class="mt-6 space-y-4 rounded-xl border border-stone-200 bg-white p-6">
+      <label class="block text-sm">
+        <span class="text-stone-600">Nome no WhatsApp</span>
+        <input name="display_name" value="{{ settings.display_name if settings else '' }}"
+          class="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2" />
+      </label>
+      <label class="block text-sm">
+        <span class="text-stone-600">O que você vende</span>
+        <textarea name="offer_summary" rows="2" class="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2">{{ settings.offer_summary if settings else '' }}</textarea>
+      </label>
+      <label class="block text-sm">
+        <span class="text-stone-600">Site / portfólio</span>
+        <input name="portfolio_url" value="{{ settings.portfolio_url if settings else '' }}"
+          class="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2" />
+      </label>
+      <label class="block text-sm">
+        <span class="text-stone-600">Link de agenda (opcional)</span>
+        <input name="booking_url" value="{{ settings.booking_url if settings else '' }}"
+          class="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2" />
+      </label>
+      <label class="block text-sm">
+        <span class="text-stone-600">Nichos (vírgula)</span>
+        <input name="niches" value="{{ settings.niches|join(', ') if settings and settings.niches else '' }}"
+          placeholder="clinica, loja, food"
+          class="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2" />
+      </label>
+      <label class="block text-sm">
+        <span class="text-stone-600">Cidades (vírgula)</span>
+        <input name="cities" value="{{ settings.cities|join(', ') if settings and settings.cities else '' }}"
+          class="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2" />
+      </label>
+      <div class="grid grid-cols-2 gap-3">
+        <label class="block text-sm">
+          <span class="text-stone-600">Limite / dia</span>
+          <input type="number" name="daily_limit" min="1" max="50"
+            value="{{ settings.daily_limit if settings else 5 }}"
+            class="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2" />
+        </label>
+        <label class="block text-sm">
+          <span class="text-stone-600">Intervalo (min)</span>
+          <input type="number" name="interval_minutes" min="5" max="120"
+            value="{{ settings.interval_minutes if settings else 20 }}"
+            class="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2" />
+        </label>
+      </div>
+      <label class="flex items-center gap-2 text-sm">
+        <input type="checkbox" name="bot_enabled" {% if not settings or settings.bot_enabled %}checked{% endif %} />
+        Bot inbound ligado
+      </label>
+      <button class="rounded-lg bg-teal-700 text-white px-4 py-2 text-sm font-medium">Salvar</button>
+    </form>
+  </main>
+</div>
+{% endblock %}

@@ -5,22 +5,91 @@
   {% include "partials/nav.html" %}
   <main class="flex-1 p-8">
     <h1 class="text-2xl font-semibold tracking-tight">Flow Studio</h1>
-    <p class="text-sm text-stone-500 mt-1">Control plane do Hermes — prompts, playbooks, guardrails (em construção)</p>
+    <p class="text-sm text-stone-500 mt-1">Prompts versionados, preview e decision log</p>
+
+    <div class="mt-8 grid gap-4 lg:grid-cols-3">
+      {% for kind, label in [("outbound", "Persona outbound"), ("inbound", "Persona inbound"), ("playbook", "Playbook")] %}
+      {% set cfg = configs[kind] %}
+      <form method="post" action="/app/flow-studio/save" class="rounded-xl bg-white border border-stone-200 p-5 flex flex-col">
+        <div class="flex items-center justify-between gap-2">
+          <h2 class="font-medium">{{ label }}</h2>
+          <span class="text-xs text-stone-400">v{{ cfg.version }}{% if cfg.is_published %} · pub{% endif %}</span>
+        </div>
+        <input type="hidden" name="kind" value="{{ kind }}" />
+        <textarea name="content" rows="12" class="mt-3 w-full flex-1 rounded-lg border border-stone-200 p-3 text-sm font-mono">{{ cfg.content }}</textarea>
+        <div class="mt-3 flex gap-2">
+          <button name="publish" value="0" class="rounded-lg border border-stone-200 px-3 py-1.5 text-sm">Salvar rascunho</button>
+          <button name="publish" value="1" class="rounded-lg bg-teal-700 text-white px-3 py-1.5 text-sm">Publicar</button>
+        </div>
+      </form>
+      {% endfor %}
+    </div>
 
     <div class="mt-8 grid gap-4 lg:grid-cols-2">
-      <div class="rounded-xl bg-white border border-stone-200 p-6">
-        <h2 class="font-medium">Persona outbound</h2>
-        <p class="text-sm text-stone-500 mt-1">Herda playbooks calibrados no lab. Edição versionada virá aqui.</p>
-        <textarea disabled rows="8" class="mt-4 w-full rounded-lg border border-stone-200 bg-stone-50 p-3 text-sm text-stone-500"
-          placeholder="Prompt outbound (publicado via agent_config_versions)…"></textarea>
-      </div>
-      <div class="rounded-xl bg-white border border-stone-200 p-6">
-        <h2 class="font-medium">Persona inbound</h2>
-        <p class="text-sm text-stone-500 mt-1">Regras: só prospect, anti-eco, continuar conversa sem reiniciar pitch.</p>
-        <textarea disabled rows="8" class="mt-4 w-full rounded-lg border border-stone-200 bg-stone-50 p-3 text-sm text-stone-500"
-          placeholder="Prompt inbound…"></textarea>
-      </div>
+      <form method="post" action="/app/flow-studio/preview-outbound" class="rounded-xl bg-white border border-stone-200 p-5">
+        <h2 class="font-medium">Preview outbound</h2>
+        <div class="mt-3 grid gap-2 sm:grid-cols-2">
+          <input name="company" value="Clínica Sorriso" class="rounded-lg border border-stone-300 px-3 py-2 text-sm" />
+          <input name="contact_name" value="Ana" class="rounded-lg border border-stone-300 px-3 py-2 text-sm" />
+        </div>
+        <button class="mt-3 rounded-lg bg-teal-700 text-white px-3 py-1.5 text-sm">Gerar (sem enviar)</button>
+        {% if preview_out %}
+        <p class="mt-3 text-xs text-stone-400">nicho {{ preview_out.niche }} · ângulo {{ preview_out.angle_label }} · {{ preview_out.chars }} chars</p>
+        <p class="mt-2 text-sm whitespace-pre-wrap bg-stone-50 rounded-lg p-3 border border-stone-100">{{ preview_out.message }}</p>
+        {% endif %}
+      </form>
+
+      <form method="post" action="/app/flow-studio/preview-inbound" class="rounded-xl bg-white border border-stone-200 p-5">
+        <h2 class="font-medium">Preview inbound</h2>
+        <textarea name="message" rows="3" class="mt-3 w-full rounded-lg border border-stone-300 p-3 text-sm" placeholder="Mensagem do lead…">Quanto custa?</textarea>
+        <button class="mt-3 rounded-lg bg-teal-700 text-white px-3 py-1.5 text-sm">Simular resposta</button>
+        {% if preview_in %}
+        <p class="mt-3 text-xs text-stone-400">{{ preview_in.reason }}{% if preview_in.escalate %} · escalar{% endif %}</p>
+        <p class="mt-2 text-sm whitespace-pre-wrap bg-stone-50 rounded-lg p-3 border border-stone-100">{{ preview_in.reply }}</p>
+        {% endif %}
+      </form>
     </div>
+
+    <div class="mt-8 grid gap-4 lg:grid-cols-2">
+      <section class="rounded-xl bg-white border border-stone-200 p-5">
+        <h2 class="font-medium">Scorecard outbound (24h)</h2>
+        <ul class="mt-3 space-y-1 text-sm">
+          {% for label, value in scorecard %}
+          <li class="flex justify-between gap-4 border-b border-stone-50 py-1">
+            <span class="text-stone-500">{{ label }}</span>
+            <span class="font-medium tabular-nums">{{ value }}</span>
+          </li>
+          {% endfor %}
+        </ul>
+      </section>
+      <section class="rounded-xl bg-white border border-stone-200 p-5">
+        <h2 class="font-medium">Ângulos por nicho</h2>
+        <ul class="mt-3 max-h-56 overflow-y-auto space-y-2 text-sm">
+          {% for a in angles %}
+          <li class="border-b border-stone-50 pb-2">
+            <span class="text-xs text-teal-700 font-medium">{{ a.label }}</span>
+            <p class="text-stone-600">{{ a.pain }} → {{ a.offer }}</p>
+          </li>
+          {% endfor %}
+        </ul>
+      </section>
+    </div>
+
+    <section class="mt-8 rounded-xl bg-white border border-stone-200 p-5">
+      <h2 class="font-medium">Decision log</h2>
+      <ul class="mt-3 divide-y divide-stone-100 text-sm">
+        {% for log in logs %}
+        <li class="py-2 flex flex-wrap gap-x-4 gap-y-1">
+          <span class="text-stone-400 text-xs whitespace-nowrap">{{ log.created_at }}</span>
+          <span class="font-medium">{{ log.channel }}/{{ log.action }}</span>
+          <span class="text-stone-500">{{ log.reason or '' }}</span>
+          <span class="text-stone-400">{{ log.phone or '' }} {{ log.niche or '' }}</span>
+        </li>
+        {% else %}
+        <li class="py-2 text-stone-500">Sem eventos.</li>
+        {% endfor %}
+      </ul>
+    </section>
   </main>
 </div>
 {% endblock %}

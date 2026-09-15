@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Privacidade · Vendaprojeto{% endblock %}
+{% block body %}
+<div class="min-h-screen flex">
+  {% include "partials/nav.html" %}
+  <main class="flex-1 p-8">
+    <h1 class="text-2xl font-semibold tracking-tight">Privacidade (LGPD)</h1>
+    <p class="text-sm text-stone-500 mt-1">Exporte seus dados ou a lista de não contatar</p>
+    <ul class="mt-6 space-y-3 text-sm max-w-lg">
+      <li>
+        <a class="text-teal-700 hover:underline" href="/app/privacidade/export.json">Baixar export JSON</a>
+        <p class="text-xs text-stone-400">Tenant, settings, leads (sem senhas)</p>
+      </li>
+      <li>
+        <a class="text-teal-700 hover:underline" href="/app/privacidade/dnc.csv">Baixar DNC CSV</a>
+        <p class="text-xs text-stone-400">Telefones com opt-out / do_not_contact</p>
+      </li>
+    </ul>
+  </main>
+</div>
+{% endblock %}

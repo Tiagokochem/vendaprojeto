@@ -1,12 +1,12 @@
 {% extends "base.html" %}
-{% block title %}Dashboard · Vendaprojeto{% endblock %}
+{% block title %}Início · Vendaprojeto{% endblock %}
 {% block body %}
 <div class="min-h-screen flex">
   {% include "partials/nav.html" %}
   <main class="flex-1 p-8">
     <header class="flex items-start justify-between gap-4">
       <div>
-        <h1 class="text-2xl font-semibold tracking-tight">Dashboard</h1>
+        <h1 class="text-2xl font-semibold tracking-tight">Início</h1>
         <p class="text-sm text-stone-500 mt-1">{{ tenant_name }} · {{ user_email }}</p>
       </div>
       <form method="post" action="/logout">
@@ -14,26 +14,168 @@
       </form>
     </header>
 
-    <p class="mt-4 text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">{{ note }}</p>
+    <div class="mt-4 max-w-xl">
+      {% include "partials/status_bar.html" %}
+    </div>
 
-    <section class="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      {% for label, key in [("Enviados hoje", "sent_today"), ("Fila pending", "pending"), ("Respostas 24h", "replies_24h"), ("Escalonamentos", "escalations_open")] %}
-      <div class="rounded-xl bg-white border border-stone-200 p-5">
+    {% if checklist and not smoke_ok %}
+    <section class="mt-4 max-w-xl rounded-xl border border-stone-200 bg-white p-4">
+      <h2 class="text-sm font-medium">Checklist pra ir ao ar</h2>
+      <ul class="mt-2 space-y-1 text-sm text-stone-600">
+        <li>{% if checklist.wizard %}✓{% else %}○{% endif %} Negócio configurado</li>
+        <li>{% if checklist.whatsapp %}✓{% else %}○{% endif %} WhatsApp conectado
+          {% if not checklist.whatsapp %}<a class="text-teal-700 ml-1" href="/app/whatsapp">abrir</a>{% endif %}
+        </li>
+        <li>{% if checklist.smoke %}✓{% else %}○{% endif %} Smoke test (mande um oi)
+          {% if not checklist.smoke %}<a class="text-teal-700 ml-1" href="/app/whatsapp">testar</a>{% endif %}
+        </li>
+      </ul>
+    </section>
+    {% endif %}
+
+    {% if flash %}
+    <p class="mt-3 max-w-xl text-sm text-teal-800 bg-teal-50 border border-teal-200 rounded-lg px-3 py-2">
+      {% if flash == 'abertura_ok' %}Abertura salva — próximos envios usam o novo texto.
+      {% elif flash == 'fila_vazia' %}Nada na fila agora. Capture leads ou aguarde o horário.
+      {% elif flash.startswith('envio_') %}Resultado do envio: {{ flash.replace('envio_', '') }}.
+      {% elif flash.startswith('bloqueado_') %}Ainda bloqueado: {{ flash.replace('bloqueado_', '') }}.
+      {% else %}{{ flash }}{% endif %}
+    </p>
+    {% endif %}
+
+    {% if failures and failures|length %}
+    <section class="mt-4 rounded-xl border border-red-200 bg-red-50 p-5 max-w-xl">
+      <h2 class="font-medium text-red-950">{{ failures|length }} falha{{ 's' if failures|length != 1 else '' }} de envio</h2>
+      <ul class="mt-2 space-y-1 text-sm text-red-900/80">
+        {% for f in failures %}
+        <li>{{ f.phone_normalized }} — {{ f.error_message or 'erro' }}</li>
+        {% endfor %}
+      </ul>
+      <a href="/app/fila" class="inline-block mt-3 text-sm text-teal-800 underline">Ver fila e retentar</a>
+    </section>
+    {% endif %}
+
+    {% if needs_you and needs_you|length %}
+    <section class="mt-6 rounded-xl border border-amber-200 bg-amber-50 p-5 max-w-xl">
+      <h2 class="font-medium text-amber-950">{{ needs_you|length }} conversa{{ 's' if needs_you|length != 1 else '' }} pedem você</h2>
+      <p class="mt-1 text-sm text-amber-900/80">{{ needs_you[0].reason or 'Pediu atendimento humano' }} · {{ needs_you[0].phone }}</p>
+      <a href="/app/conversas/{{ needs_you[0].phone }}"
+         class="inline-block mt-3 rounded-lg bg-teal-700 text-white px-4 py-2 text-sm">Assumir a próxima</a>
+      <ul class="mt-3 space-y-1 text-sm">
+        {% for e in needs_you[1:4] %}
+        <li><a class="text-teal-800 hover:underline" href="/app/conversas/{{ e.phone }}">{{ e.phone }} — {{ e.reason or 'escalação' }}</a></li>
+        {% endfor %}
+      </ul>
+    </section>
+    {% elif smoke_ok and wa_ready %}
+    <p class="mt-4 text-sm text-stone-500 max-w-xl">Ninguém esperando — o bot segue. <a class="text-teal-700 hover:underline" href="/app/conversas">Ver conversas</a></p>
+    {% endif %}
+
+    {% if not wizard_complete or not wa_ready or not smoke_ok %}
+    {% set step = onboarding_step or 1 %}
+    <ol class="mt-6 flex gap-2 text-[11px] uppercase tracking-wide max-w-xl">
+      {% for n, label in [(1,'Negócio'),(2,'WhatsApp'),(3,'Teste'),(4,'No ar')] %}
+      <li class="flex-1 rounded-lg px-2 py-1.5 text-center
+        {% if step == n %}bg-teal-700 text-white
+        {% elif step > n %}bg-teal-100 text-teal-800
+        {% else %}bg-stone-200 text-stone-500{% endif %}">{{ n }}. {{ label }}</li>
+      {% endfor %}
+    </ol>
+    <section class="mt-4 rounded-xl border border-stone-200 bg-white p-5 max-w-xl">
+      <h2 class="font-medium">Checklist</h2>
+      <ul class="mt-3 space-y-2 text-sm">
+        <li class="{% if wizard_complete %}text-stone-400 line-through{% else %}text-stone-800{% endif %}">
+          {% if not wizard_complete %}<a class="text-teal-700 hover:underline" href="/app/comecar">{% endif %}
+          Configurar negócio
+          {% if not wizard_complete %}</a>{% endif %}
+        </li>
+        <li class="{% if wa_ready %}text-stone-400 line-through{% else %}text-stone-800{% endif %}">
+          {% if not wa_ready %}<a class="text-teal-700 hover:underline" href="/app/whatsapp">{% endif %}
+          Conectar WhatsApp
+          {% if not wa_ready %}</a>{% endif %}
+        </li>
+        <li class="{% if smoke_ok %}text-stone-400 line-through{% else %}text-stone-800{% endif %}">
+          {% if not smoke_ok %}<a class="text-teal-700 hover:underline" href="/app/whatsapp">{% endif %}
+          Testar o bot
+          {% if not smoke_ok %}</a>{% endif %}
+        </li>
+      </ul>
+    </section>
+    {% endif %}
+
+    {% if smoke_ok %}
+    <section class="mt-6 rounded-xl border border-stone-200 bg-white p-5 max-w-xl">
+      <h2 class="font-medium">Resultado do dia</h2>
+      <p class="mt-2 text-sm text-stone-700">{{ roi.line if roi else '—' }}</p>
+      <p class="mt-1 text-xs text-stone-400">
+        Meta: reuniões e ganhos. Restam {{ remaining_today }}/{{ daily_cap }} envios.
+        {% if roi and roi.reply_rate is not none %} · Reply rate {{ roi.reply_rate }}%{% endif %}
+      </p>
+      <div class="mt-3 flex flex-wrap gap-2 text-sm">
+        <a class="text-teal-700 hover:underline" href="/app/export/conversas.csv">Exportar CSV</a>
+        {% if roi and roi.learning_pending %}
+        <a class="text-teal-700 hover:underline" href="/app/aprendizados">{{ roi.learning_pending }} aprendizado(s) pra aprovar</a>
+        {% endif %}
+      </div>
+    </section>
+
+    {% if angles and angles|length %}
+    <section class="mt-4 max-w-xl">
+      <h2 class="text-sm font-medium text-stone-700">Ângulos (72h)</h2>
+      <ul class="mt-2 space-y-1 text-sm text-stone-600">
+        {% for a in angles[:5] %}
+        <li class="flex justify-between gap-2 border-b border-stone-100 py-1">
+          <span class="truncate">{{ a.angle }}</span>
+          <span class="tabular-nums text-stone-400 shrink-0">
+            {{ a.sent }} env · {{ a.hot }} quentes{% if a.rate is not none %} · {{ a.rate }}%{% endif %}
+          </span>
+        </li>
+        {% endfor %}
+      </ul>
+    </section>
+    {% endif %}
+
+    <section class="mt-6 grid grid-cols-2 lg:grid-cols-4 gap-3 max-w-3xl">
+      {% for label, key in [
+        ("Enviados hoje", "sent_today"),
+        ("Respostas 24h", "replies_24h"),
+        ("Quentes", "hot_leads"),
+        ("Precisa de você", "escalations_open")
+      ] %}
+      <div class="rounded-xl bg-white border border-stone-200 p-4">
         <p class="text-xs uppercase tracking-wide text-stone-500">{{ label }}</p>
-        <p class="mt-2 text-3xl font-semibold tabular-nums">{{ stats[key] }}</p>
+        <p class="mt-1 text-2xl font-semibold tabular-nums">{{ stats[key] }}</p>
       </div>
       {% endfor %}
     </section>
+    <p class="mt-3 text-sm text-stone-600 max-w-xl">
+      {% if next_due %}<span class="text-stone-400">Próximo envio agendado {{ next_due }}</span>{% endif %}
+    </p>
 
-    <section class="mt-10 rounded-xl bg-white border border-stone-200 p-6">
-      <h2 class="font-medium">Próximos passos</h2>
-      <ol class="mt-3 list-decimal list-inside text-sm text-stone-600 space-y-1">
-        <li>Manter calibração no lab <code class="text-xs bg-stone-100 px-1 rounded">vendas</code></li>
-        <li>Ligar Postgres e migrar schema multi-tenant</li>
-        <li>Conversas, fila e Flow Studio com dados reais</li>
-        <li>QR WhatsApp por tenant (Evolution)</li>
-      </ol>
+    <section class="mt-6 flex flex-wrap gap-2 max-w-xl">
+      {% if outbound_ready and stats.pending > 0 %}
+      <form method="post" action="/app/enviar-proximo">
+        <button class="rounded-lg bg-teal-700 text-white px-4 py-2 text-sm">Enviar próximo da fila</button>
+      </form>
+      {% elif outbound_ready and stats.contacts_total == 0 %}
+      <a href="/app/contatos" class="rounded-lg border border-stone-200 bg-white px-4 py-2 text-sm">Capturar leads</a>
+      {% endif %}
+      {% if stats.dry_today %}
+      <span class="text-xs self-center text-amber-700">{{ stats.dry_today }} ensaio(s) hoje — não contam na cota</span>
+      {% endif %}
     </section>
+
+    <section class="mt-8 rounded-xl border border-stone-200 bg-white p-5 max-w-xl">
+      <h2 class="font-medium">Sua abertura no WhatsApp</h2>
+      <p class="text-xs text-stone-500 mt-1">Opcional. Use {empresa} ou {nome}. Sem isso, o playbook do nicho fala por você.</p>
+      <form method="post" action="/app/abertura" class="mt-3 space-y-2">
+        <textarea name="opening_override" rows="3"
+          class="w-full rounded-lg border border-stone-300 px-3 py-2 text-sm"
+          placeholder="Oi! Sou {{ settings.display_name or 'eu' }}. Ajudo negócios locais a…">{{ settings.opening_override if settings and settings.opening_override else '' }}</textarea>
+        <button class="rounded-lg bg-stone-800 text-white px-4 py-2 text-sm">Salvar abertura</button>
+      </form>
+    </section>
+    {% endif %}
   </main>
 </div>
 {% endblock %}

@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Auditoria · Vendaprojeto{% endblock %}
+{% block body %}
+<div class="min-h-screen flex">
+  {% include "partials/nav.html" %}
+  <main class="flex-1 p-8">
+    <div class="max-w-3xl">{% include "partials/status_bar.html" %}</div>
+    <h1 class="mt-4 text-2xl font-semibold tracking-tight">Auditoria</h1>
+    <p class="text-sm text-stone-500 mt-1">Últimas decisões do Hermes (S23)</p>
+
+    {% if faq_ranking %}
+    <section class="mt-6 max-w-2xl">
+      <h2 class="text-sm font-medium text-stone-700">KB (30d)</h2>
+      <p class="text-xs text-stone-400 mt-0.5">
+        {{ faq_ranking[0].period_hits if faq_ranking else 0 }} hits kb_match no período
+      </p>
+      <ul class="mt-2 space-y-1 text-sm">
+        {% for f in faq_ranking[:8] %}
+        <li class="border-b border-stone-100 py-1 truncate">{{ f.question }}</li>
+        {% endfor %}
+      </ul>
+    </section>
+    {% endif %}
+
+    <ul class="mt-8 space-y-2 max-w-3xl text-sm">
+      {% for r in rows %}
+      <li class="flex flex-wrap gap-2 border-b border-stone-100 py-2 text-stone-600">
+        <span class="text-xs text-stone-400 tabular-nums">{{ r.created_at }}</span>
+        <span class="font-medium text-stone-800">{{ r.action }}</span>
+        <span>{{ r.reason or '—' }}</span>
+        <span class="text-stone-400">{{ r.channel }} · {{ r.phone or '—' }} · {{ r.stage or '—' }}</span>
+      </li>
+      {% else %}
+      <li class="text-stone-500">Sem eventos ainda.</li>
+      {% endfor %}
+    </ul>
+  </main>
+</div>
+{% endblock %}

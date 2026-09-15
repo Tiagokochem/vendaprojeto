@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+{% block title %}Começar · Vendaprojeto{% endblock %}
+{% block body %}
+<div class="min-h-screen flex">
+  {% include "partials/nav.html" %}
+  <main class="flex-1 p-8 max-w-xl">
+    {% include "partials/status_bar.html" %}
+
+    {% set step = step or 1 %}
+    <ol class="mt-4 flex gap-2 text-[11px] uppercase tracking-wide">
+      {% for n, label in [(1,'Negócio'),(2,'WhatsApp'),(3,'Teste'),(4,'No ar')] %}
+      <li class="flex-1 rounded-lg px-2 py-1.5 text-center
+        {% if step == n %}bg-teal-700 text-white
+        {% elif step > n %}bg-teal-100 text-teal-800
+        {% else %}bg-stone-200 text-stone-500{% endif %}">{{ n }}. {{ label }}</li>
+      {% endfor %}
+    </ol>
+
+    <p class="text-xs uppercase tracking-widest text-teal-700 font-semibold mt-6">Passo 1 · Negócio</p>
+    <h1 class="mt-2 text-2xl font-semibold tracking-tight">Seu negócio no ar</h1>
+    <p class="mt-1 text-sm text-stone-500">
+      Sem montar fluxo. Nicho + ritmo — o Hermes já sabe prospectar e responder.
+    </p>
+
+    {% if error %}
+    <p class="mt-4 rounded-lg bg-red-50 text-red-700 text-sm px-3 py-2">{{ error }}</p>
+    {% endif %}
+
+    <form method="post" action="/app/comecar" class="mt-8 space-y-6">
+      <section class="space-y-3">
+        <h2 class="text-sm font-medium text-stone-800">Quem fala no WhatsApp</h2>
+        <label class="block text-sm">
+          <span class="text-stone-600">Seu nome</span>
+          <input name="display_name" required
+            value="{{ settings.display_name if settings else '' }}"
+            class="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2" />
+        </label>
+        <label class="block text-sm">
+          <span class="text-stone-600">O que você vende (1 frase)</span>
+          <textarea name="offer_summary" required rows="2"
+            class="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2"
+            placeholder="Sites e automação para clínicas locais">{{ settings.offer_summary if settings else '' }}</textarea>
+        </label>
+        <label class="block text-sm">
+          <span class="text-stone-600">Site / portfólio (opcional)</span>
+          <input name="portfolio_url" type="url"
+            value="{{ settings.portfolio_url if settings else '' }}"
+            class="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2"
+            placeholder="https://" />
+        </label>
+      </section>
+
+      <section class="space-y-3">
+        <h2 class="text-sm font-medium text-stone-800">Para quem prospectar</h2>
+        <div class="space-y-2">
+          {% set current = (settings.niches[0] if settings and settings.niches else 'clinica') %}
+          {% for key, label, hint in niches %}
+          <label class="flex gap-3 rounded-xl border border-stone-200 bg-white p-3 cursor-pointer hover:border-teal-600/40">
+            <input type="radio" name="niche" value="{{ key }}" class="mt-1"
+              hx-get="/app/comecar/preview?niche={{ key }}"
+              hx-target="#playbook-preview"
+              hx-swap="innerHTML"
+              {% if current == key %}checked{% endif %} required />
+            <span>
+              <span class="block text-sm font-medium">{{ label }}</span>
+              <span class="block text-xs text-stone-500 mt-0.5">{{ hint }}</span>
+            </span>
+          </label>
+          {% endfor %}
+        </div>
+      </section>
+
+      <section class="space-y-3">
+        <h2 class="text-sm font-medium text-stone-800">Onde e quanto</h2>
+        <label class="block text-sm">
+          <span class="text-stone-600">Cidades (vírgula)</span>
+          <input name="cities" required
+            value="{{ settings.cities|join(', ') if settings and settings.cities else '' }}"
+            placeholder="Cascavel, Toledo"
+            class="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2" />
+        </label>
+        <label class="block text-sm">
+          <span class="text-stone-600">Envios por dia (ritmo)</span>
+          <input type="number" name="daily_limit" min="1" max="30"
+            value="{{ settings.daily_limit if settings else 5 }}"
+            class="mt-1 w-40 rounded-lg border border-stone-300 px-3 py-2" />
+          <span class="block text-xs text-stone-400 mt-1">Janela comercial padrão: 9h–18h (Brasília).</span>
+        </label>
+        <div class="flex gap-3">
+          <label class="block text-sm">
+            <span class="text-stone-600">Início (h)</span>
+            <input type="number" name="quiet_start" min="0" max="23"
+              value="{{ settings.quiet_start if settings and settings.quiet_start is defined else 9 }}"
+              class="mt-1 w-20 rounded-lg border border-stone-300 px-3 py-2" />
+          </label>
+          <label class="block text-sm">
+            <span class="text-stone-600">Fim (h)</span>
+            <input type="number" name="quiet_end" min="1" max="24"
+              value="{{ settings.quiet_end if settings and settings.quiet_end is defined else 18 }}"
+              class="mt-1 w-20 rounded-lg border border-stone-300 px-3 py-2" />
+          </label>
+        </div>
+        <label class="block text-sm">
+          <span class="text-stone-600">Captura automática (horas; 0 = só manual)</span>
+          <input type="number" name="capture_every_hours" min="0" max="168"
+            value="{{ settings.capture_every_hours if settings and settings.capture_every_hours is defined else 0 }}"
+            class="mt-1 w-40 rounded-lg border border-stone-300 px-3 py-2" />
+        </label>
+        <label class="block text-sm">
+          <span class="text-stone-600">Abertura A/B (opcional)</span>
+          <select name="opening_pick" class="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 text-sm">
+            <option value="">Usar playbook padrão</option>
+            {% for o in openings or [] %}
+            <option value="{{ o }}">{{ o[:90] }}{% if o|length > 90 %}…{% endif %}</option>
+            {% endfor %}
+          </select>
+          <span class="block text-xs text-stone-400 mt-1">Use {empresa} e {nome} se editar depois.</span>
+        </label>
+      </section>
+
+      <section class="rounded-xl border border-stone-200 bg-white p-4">
+        <h2 class="text-sm font-medium text-stone-800">Preview do playbook</h2>
+        <p class="text-xs text-stone-500 mt-1">Exemplos de abertura — você não monta fluxo.</p>
+        <div id="playbook-preview">
+          <ul class="space-y-2 mt-2">
+            {% for a in preview %}
+            <li class="text-sm text-stone-600">
+              <span class="font-medium text-stone-800">{{ a.cta }}</span>
+              <span class="block text-xs text-stone-400 mt-0.5">Dor: {{ a.pain }}</span>
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
+      </section>
+
+      <button type="submit" class="w-full rounded-lg bg-teal-700 text-white py-2.5 text-sm font-medium hover:bg-teal-800">
+        Salvar e conectar WhatsApp
+      </button>
+    </form>
+  </main>
+</div>
+{% endblock %}

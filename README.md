@@ -1,46 +1,121 @@
-# Vendaprojeto — SaaS de prospecção WhatsApp
+# Vendaprojeto
 
-Produto novo (multi-tenant). **Não** é o lab em produção.
+SaaS multi-tenant de **prospecção no WhatsApp** — nicho + ritmo + playbook pronto.  
+**Sem montar fluxo.** O Hermes envia, responde e escala; você assume os quentes.
+
+> Em ~10 min: negócio → WhatsApp → smoke → no ar.
 
 | Repo | Papel |
 |------|--------|
-| `../vendas` | Lab VPS — Apify, n8n, Hermes scripts (continua rodando) |
-| `vendaprojeto` (este) | SaaS — painel FastAPI + HTMX + motor Hermes + Flow Studio |
+| `../vendas` | Lab VPS (Apify, n8n, scripts) — continua separado |
+| **vendaprojeto** (este) | Produto SaaS — painel + Hermes + Postgres |
 
 ## Stack
 
-- **FastAPI** + Jinja2 + HTMX + Alpine.js + Tailwind (CDN no MVP)
-- **Postgres** (schema `agente` com `tenant_id`)
-- **Hermes** (`packages/hermes_core`) — outbound/inbound multi-tenant
-- Evolution API (QR por tenant) — fases seguintes
+- **FastAPI** + Jinja2 + HTMX + Alpine + Tailwind CDN  
+- **Postgres** (`agente.*`, multi-tenant)  
+- **hermes_core** (`packages/hermes_core`) — outbound, inbound, skills, safety  
+- Evolution API (QR por tenant) · Apify opcional · OpenAI opcional  
 
-## Início rápido (local)
+Versões: hermes **0.13** · panel **0.5**
+
+## Início rápido
 
 ```bash
 cp .env.example .env
-docker compose up -d postgres
-cd apps/panel && pip install -r requirements.txt
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8088
+docker compose up -d --build
 ```
 
-Abra http://127.0.0.1:8088 — login demo: `demo@vendaprojeto.local` / `demo1234`
+- Vendas: http://127.0.0.1:8088/  
+- Login: http://127.0.0.1:8088/login  
+- Demo: `demo@vendaprojeto.local` / `demo1234` (ou `DEMO_*` no `.env`)  
+- Conta nova: `/signup`
+
+## O que o produto faz
+
+1. **Wizard** — nicho (8 packs), oferta, ritmo, quiet hours, abertura A/B  
+2. **WhatsApp** — conectar + smoke test  
+3. **Fila** — outbound com jitter, feriados BR, combustível automático  
+4. **Conversas** — skills (STOP, preço, agenda…), handoff, outcomes  
+5. **Aprendizados** — candidato → aprovação humana → KB  
+6. **Plano** — Free + trial Pro 14 dias  
+
+## Rotas principais
+
+| Rota | Função |
+|------|--------|
+| `/` | Página de vendas |
+| `/app` | Resultado do dia + checklist |
+| `/app/conversas` | Inbox + assumir |
+| `/app/aprendizados` | Aprovar FAQs |
+| `/app/whatsapp` | QR / status |
+| `/app/comecar` | Meu negócio |
+| `/app/billing` | Plano / trial |
+| `/app/auditoria` | Decision log |
+| `/app/privacidade` | Export LGPD / DNC |
+| `/health` | Health + ops + checks |
+
+Jobs (secret `X-Panel-Secret`): ver `docs/CRONS.md`.
+
+## Packs prontos
+
+clínica · loja · food · serviço · imobiliária · educação · advocacia · pet  
+
+Cada um: dores, CTAs, oferta e FAQ seed no wizard.
+
+## Docs
+
+| Doc | Conteúdo |
+|-----|----------|
+| [docs/SPRINTS.md](docs/SPRINTS.md) | Roadmap S0–S34+ |
+| [docs/FLUXOS.md](docs/FLUXOS.md) | Skills e cadência (sem canvas) |
+| [docs/SEGURANCA.md](docs/SEGURANCA.md) | Prompt injection, HMAC, CSP |
+| [docs/UX-SIMPLES.md](docs/UX-SIMPLES.md) | Modo simples |
+| [docs/CRONS.md](docs/CRONS.md) | Crons / jobs |
+| [docs/CALIBRACAO.md](docs/CALIBRACAO.md) | Defaults calibráveis |
+
+## Segurança (resumo)
+
+- Anti prompt-injection no inbound LLM  
+- Learning só com aprovação humana  
+- STOP → DNC · quiet hours · feriados BR  
+- Rate-limit webhook · HMAC opcional (`WEBHOOK_HMAC_SECRET`)  
+- `.env` **nunca** vai pro git — use `.env.example`
+
+## Dev local (sem Docker do painel)
+
+```bash
+cd apps/panel
+python3 -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+export PYTHONPATH=../../packages:.
+# Postgres no ar (compose só db ou completo)
+uvicorn app.main:app --reload --port 8088
+```
+
+Testes Hermes (sem Postgres):
+
+```bash
+PYTHONPATH=packages:apps/panel python3 -c "import runpy; runpy.run_path('apps/panel/tests/test_hermes.py')"
+# ou pytest, se instalado
+```
 
 ## Estrutura
 
 ```
-apps/panel/          # UI + API FastAPI
-packages/hermes_core/# Motor compartilhado (futuro)
-sql/                 # Migrations / schema
-docs/                # Produto e calibração
+apps/panel/          # FastAPI + templates + serviços
+packages/hermes_core # motor puro (skills, packs, safety, cadence)
+sql/                 # schema idempotente
+docs/                # sprints e operação
+scripts/             # utilitários
 ```
 
-## Roadmap (resumo)
+## Princípios
 
-0. Calibrar no lab `vendas`
-1. Scaffold (você está aqui)
-2. Schema multi-tenant + auth real
-3. Operador: conversas, fila, KB
-4. Flow Studio + Hermes engine
-5. QR WhatsApp por tenant + billing
+- Playbook + meta + skills — **não** flow builder  
+- Commits pequenos, em português (imperativo)  
+- Review antes de fechar sprint  
 
-Ver plano: painel multi-tenant Hermes (Cursor plans).
+## Licença
+
+Uso privado / interno do projeto. Ajuste conforme sua necessidade.
