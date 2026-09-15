@@ -101,28 +101,78 @@ a {
   gap: clamp(1.5rem, 4vw, 3rem);
   padding: 7rem clamp(1.25rem, 4vw, 2.5rem) 3.5rem;
   overflow: hidden;
+  isolation: isolate;
+}
+
+/* Soft seam into the paper sections below */
+.lp-hero::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+  height: clamp(4rem, 12vw, 7rem);
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(243, 246, 244, 0.55) 55%,
+    var(--paper) 100%
+  );
 }
 
 .lp-hero-bg {
   position: absolute;
   inset: 0;
+  z-index: 0;
+  background: #d9e3dc;
+}
+
+/* Full-bleed photo plane + left-biased scrim for type */
+.lp-hero-photo {
+  position: absolute;
+  inset: 0;
   background:
-    linear-gradient(115deg, #eef3f0 0%, #e4ebe6 42%, #d5e4dc 100%);
+    url("/static/img/landing-hero-bg.jpg") center / cover no-repeat;
+  transform: scale(1.04);
+  transform-origin: 65% 40%;
+}
+
+.lp-hero-bg::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(
+      105deg,
+      rgba(243, 246, 244, 0.97) 0%,
+      rgba(243, 246, 244, 0.92) 28%,
+      rgba(243, 246, 244, 0.72) 48%,
+      rgba(243, 246, 244, 0.28) 68%,
+      rgba(243, 246, 244, 0.08) 100%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(18, 26, 23, 0.12) 0%,
+      transparent 28%,
+      transparent 72%,
+      rgba(18, 26, 23, 0.1) 100%
+    );
 }
 
 .lp-hero-mesh {
   position: absolute;
   inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.85;
   background:
-    radial-gradient(ellipse 55% 45% at 12% 18%, rgba(15, 107, 85, 0.14), transparent 60%),
-    radial-gradient(ellipse 50% 40% at 88% 72%, rgba(18, 26, 23, 0.08), transparent 55%),
-    repeating-linear-gradient(
-      -12deg,
-      transparent,
-      transparent 28px,
-      rgba(18, 26, 23, 0.015) 28px,
-      rgba(18, 26, 23, 0.015) 29px
-    );
+    radial-gradient(ellipse 60% 50% at 8% 22%, rgba(15, 107, 85, 0.1), transparent 62%),
+    radial-gradient(ellipse 45% 38% at 92% 78%, rgba(18, 26, 23, 0.1), transparent 58%),
+    radial-gradient(ellipse 35% 30% at 70% 18%, rgba(15, 107, 85, 0.05), transparent 55%),
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.45'/%3E%3C/svg%3E");
+  background-blend-mode: multiply, multiply, normal, soft-light;
   animation: lp-drift 22s ease-in-out infinite alternate;
 }
 
@@ -306,6 +356,8 @@ a {
 
 /* Sections */
 .lp-section {
+  position: relative;
+  z-index: 2;
   padding: clamp(3.5rem, 8vw, 5.5rem) clamp(1.25rem, 4vw, 2.5rem);
   max-width: 52rem;
   margin: 0 auto;
@@ -317,9 +369,13 @@ a {
 }
 
 .lp-band {
-  background: var(--ink);
+  position: relative;
+  z-index: 2;
+  background:
+    linear-gradient(180deg, #16201c 0%, var(--ink) 18%, var(--ink) 100%);
   color: var(--paper);
   padding: clamp(3.5rem, 8vw, 5rem) 0;
+  box-shadow: inset 0 1px 0 rgba(243, 246, 244, 0.06);
 }
 
 .lp-band-inner {
@@ -565,6 +621,32 @@ a {
     min-height: auto;
     padding-top: 5.75rem;
     padding-bottom: 2.5rem;
+  }
+
+  /* Stronger, flatter scrim so copy stays readable over photo */
+  .lp-hero-bg::after {
+    background:
+      linear-gradient(
+        180deg,
+        rgba(243, 246, 244, 0.94) 0%,
+        rgba(243, 246, 244, 0.9) 42%,
+        rgba(243, 246, 244, 0.82) 100%
+      ),
+      linear-gradient(
+        105deg,
+        rgba(243, 246, 244, 0.55) 0%,
+        transparent 70%
+      );
+  }
+
+  .lp-hero-photo {
+    transform: scale(1.08);
+    transform-origin: 70% 30%;
+    opacity: 0.55;
+  }
+
+  .lp-hero-mesh {
+    opacity: 0.55;
   }
 
   .lp-hero-visual {
