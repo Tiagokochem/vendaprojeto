@@ -5,21 +5,21 @@
   <div class="w-full max-w-md rounded-2xl bg-white shadow-sm border border-stone-200 p-8">
     <p class="text-xs uppercase tracking-widest text-teal-700 font-semibold">Vendaprojeto</p>
     <h1 class="mt-2 text-2xl font-semibold tracking-tight">Entrar no painel</h1>
-    <p class="mt-1 text-sm text-stone-500">SaaS de prospecção WhatsApp</p>
+    <p class="mt-1 text-sm text-stone-500">Prospecção e atendimento no WhatsApp</p>
 
     {% if error %}
     <p class="mt-4 rounded-lg bg-red-50 text-red-700 text-sm px-3 py-2">{{ error }}</p>
     {% endif %}
 
-    <form method="post" action="/login" class="mt-6 space-y-4">
+    <form method="post" action="/login" class="mt-6 space-y-4" autocomplete="on">
       <label class="block text-sm">
         <span class="text-stone-600">E-mail</span>
-        <input name="email" type="email" required value="{{ demo_email }}"
+        <input name="email" type="email" required autocomplete="username"
           class="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-600/40" />
       </label>
       <label class="block text-sm">
         <span class="text-stone-600">Senha</span>
-        <input name="password" type="password" required
+        <input name="password" type="password" required autocomplete="current-password"
           class="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-600/40" />
       </label>
       <button type="submit"
@@ -27,7 +27,11 @@
         Entrar
       </button>
     </form>
-    <p class="mt-4 text-xs text-stone-400">Demo: {{ demo_email }} / senha do .env · <a href="/signup" class="underline">Criar conta</a> · <a href="/" class="underline">Início</a></p>
+    <p class="mt-4 text-xs text-stone-400">
+      <a href="/signup" class="underline">Criar conta</a>
+      ·
+      <a href="/" class="underline">Início</a>
+    </p>
   </div>
 </main>
 {% endblock %}

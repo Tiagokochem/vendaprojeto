@@ -46,7 +46,7 @@ docker compose up -d --build
 | http://127.0.0.1:8088/signup | Conta nova |
 | http://127.0.0.1:8088/health | Health check |
 
-Demo local (só se não mudar o `.env`): `demo@vendaprojeto.local` / `demo1234`.
+Crie conta em `/signup` ou use usuário já existente no banco.
 
 ## O que o produto faz
 

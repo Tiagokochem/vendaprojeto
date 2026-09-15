@@ -14,8 +14,10 @@ class Settings(BaseSettings):
     panel_port: int = 8088
     app_env: str = "development"
 
-    demo_email: str = "demo@vendaprojeto.local"
-    demo_password: str = "demo1234"
+    demo_email: str = ""
+    demo_password: str = ""
+    # Só cria conta demo no boot se True (dev local). Produção: False.
+    demo_seed: bool = False
 
     postgres_user: str = "venda"
     postgres_password: str = "venda_dev_pass"

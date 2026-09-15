@@ -171,8 +171,14 @@ def purge_synthetic_ops() -> None:
 
 
 def seed_demo() -> None:
-    """Conta demo para login. Sem leads/conversas inventadas. Sem fake WA open."""
-    email = settings.demo_email.strip().lower()
+    """Conta demo opcional (só se DEMO_SEED=true + e-mail/senha no .env)."""
+    if not settings.demo_seed:
+        return
+    email = (settings.demo_email or "").strip().lower()
+    password = settings.demo_password or ""
+    if not email or not password:
+        log.warning("DEMO_SEED=true sem DEMO_EMAIL/DEMO_PASSWORD; pulando seed")
+        return
     existing = db.fetch_one(
         "SELECT id FROM agente.users WHERE lower(email) = lower(%s)",
         (email,),
@@ -207,7 +213,7 @@ def seed_demo() -> None:
         VALUES (%s, %s, %s)
         RETURNING id
         """,
-        (email, hash_password(settings.demo_password), "Operador Demo"),
+        (email, hash_password(password), "Operador Demo"),
     )
     db.execute(
         """

@@ -13,14 +13,12 @@ router = APIRouter(tags=["auth"])
 async def login_page(request: Request):
     if request.session.get("user"):
         return RedirectResponse("/app", status_code=303)
-    from app.config import settings
 
     return request.app.state.templates.TemplateResponse(
         "pages/login.html",
         {
             "request": request,
             "error": None,
-            "demo_email": settings.demo_email,
         },
     )
 
@@ -31,8 +29,6 @@ async def login_submit(
     email: str = Form(...),
     password: str = Form(...),
 ):
-    from app.config import settings
-
     email_n = email.strip().lower()
     user = load_membership(email_n)
     from app.deps import password_hash_for
@@ -47,7 +43,6 @@ async def login_submit(
         {
             "request": request,
             "error": "E-mail ou senha inválidos.",
-            "demo_email": settings.demo_email,
         },
         status_code=401,
     )
