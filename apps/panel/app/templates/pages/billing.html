@@ -11,16 +11,27 @@
 
  <h1 class="mt-6 text-2xl font-semibold tracking-tight">Plano e preço</h1>
  <p class="text-sm text-stone-500 mt-1">
- Pro a <strong>R$ 10/mês</strong> (simbólico): cobre o SaaS/servidor.
+ Pro a <strong>R$ 10/mês</strong> via Mercado Pago. Cobre o SaaS/servidor.
  WhatsApp, Evolution e risco do chip são por sua conta.
  </p>
 
- {% if request.query_params.get('flash') == 'trial_ok' %}
+ {% set flash = request.query_params.get('flash') %}
+ {% if flash == 'trial_ok' %}
  <p class="mt-3 text-sm text-teal-800">Trial Pro ativado por 14 dias.</p>
- {% elif request.query_params.get('flash') == 'upgrade_interest' %}
- <p class="mt-3 text-sm text-teal-800">Recebemos seu interesse no Pro (R$ 10/mês). Entraremos em contato.</p>
- {% elif request.query_params.get('flash') %}
- <p class="mt-3 text-sm text-amber-800">Não foi possível ativar: {{ request.query_params.get('flash') }}</p>
+ {% elif flash == 'pago_ok' %}
+ <p class="mt-3 text-sm text-teal-800">Pagamento recebido. Pro ativado (confirmação pode levar alguns segundos).</p>
+ {% elif flash == 'pago_pendente' %}
+ <p class="mt-3 text-sm text-amber-800">Pagamento pendente. Assim que o Mercado Pago confirmar, o Pro libera.</p>
+ {% elif flash == 'pago_falhou' %}
+ <p class="mt-3 text-sm text-amber-800">Pagamento não concluído. Tente de novo.</p>
+ {% elif flash == 'upgrade_interest' %}
+ <p class="mt-3 text-sm text-teal-800">Recebemos seu interesse no Pro. Configure o Mercado Pago ou fale conosco.</p>
+ {% elif flash == 'mp_nao_configurado' %}
+ <p class="mt-3 text-sm text-amber-800">Mercado Pago ainda não configurado no servidor (token). Use trial ou interesse.</p>
+ {% elif flash == 'mp_erro' %}
+ <p class="mt-3 text-sm text-amber-800">Não foi possível abrir o checkout. Tente mais tarde.</p>
+ {% elif flash %}
+ <p class="mt-3 text-sm text-amber-800">{{ flash }}</p>
  {% endif %}
 
  <div class="mt-6 rounded-xl border border-stone-200 bg-white p-6 max-w-lg">
@@ -29,9 +40,14 @@
  {{ limits.label }}
  {% if limits.price_label %}<span class="text-base font-normal text-stone-600">· {{ limits.price_label }}</span>{% endif %}
  {% if trial and trial.active %} <span class="text-sm font-normal text-teal-700">(trial)</span>{% endif %}
+ {% if trial and trial.paid %} <span class="text-sm font-normal text-teal-700">(pago)</span>{% endif %}
  </p>
- {% if trial and trial.active %}
+ {% if trial and trial.paid and trial.pro_until %}
+ <p class="mt-1 text-sm text-stone-600">Pro válido até {{ trial.pro_until[:10] }}.</p>
+ {% elif trial and trial.active %}
  <p class="mt-1 text-sm text-stone-600">Restam {{ trial.days_left }} dia(s) de trial Pro.</p>
+ {% elif trial and trial.pro_expired %}
+ <p class="mt-1 text-sm text-amber-800">Pro vencido. Renove por R$ 10 (mais 30 dias).</p>
  {% elif trial and trial.expired %}
  <p class="mt-1 text-sm text-amber-800">Trial encerrado, limites Free. Assine Pro por R$ 10/mês.</p>
  {% elif trial and trial.available %}
@@ -47,6 +63,26 @@
  <li>Leads: {{ usage.leads or 0 }} / {{ limits.leads }}</li>
  <li>Seats: {{ usage.seats or 0 }} / {{ limits.seats }}</li>
  </ul>
+ {% if effective_plan != 'pro' and effective_plan != 'enterprise' %}
+ <div class="mt-4 flex flex-wrap gap-2">
+ <form method="post" action="/app/billing/pagar-pro">
+ <button class="rounded-lg bg-teal-700 text-white px-4 py-2 text-sm" {% if not mp_configured %}disabled title="Configure MERCADOPAGO_ACCESS_TOKEN"{% endif %}>
+ Pagar Pro · R$ 10 (Mercado Pago)
+ </button>
+ </form>
+ {% if not mp_configured %}
+ <form method="post" action="/app/billing/quero-pro">
+ <button class="rounded-lg border border-stone-200 px-4 py-2 text-sm">Avisar interesse</button>
+ </form>
+ {% endif %}
+ </div>
+ {% elif trial and trial.paid %}
+ <form method="post" action="/app/billing/pagar-pro" class="mt-4">
+ <button class="rounded-lg border border-teal-600 text-teal-800 px-4 py-2 text-sm" {% if not mp_configured %}disabled{% endif %}>
+ Renovar +30 dias · R$ 10
+ </button>
+ </form>
+ {% endif %}
  </div>
 
  <div class="mt-6 grid gap-4 sm:grid-cols-2 max-w-3xl text-sm">
@@ -59,7 +95,7 @@
  </ul>
  </div>
  <div class="rounded-xl border border-amber-200 bg-amber-50/60 p-4">
- <p class="font-medium text-amber-950">Por sua conta (não é nosso custo)</p>
+ <p class="font-medium text-amber-950">Por sua conta</p>
  <ul class="mt-2 space-y-1 text-amber-950/80">
  {% for item in pricing_client_owns %}
  <li>· {{ item }}</li>
@@ -67,6 +103,29 @@
  </ul>
  </div>
  </div>
+
+ <section class="mt-6 max-w-3xl rounded-xl border border-stone-200 bg-white p-5">
+ <h2 class="font-medium">Doação</h2>
+ <p class="mt-1 text-sm text-stone-500">
+ Apoio voluntário (não libera plano). Ajuda a manter o projeto no ar.
+ </p>
+ <form method="post" action="/app/billing/doar" class="mt-3 flex flex-wrap items-end gap-2">
+ <label class="text-sm">
+ <span class="text-stone-600">Valor (R$)</span>
+ <input type="number" name="amount" min="1" step="1" value="10"
+ class="mt-1 w-24 rounded-lg border border-stone-300 px-3 py-2 text-sm" />
+ </label>
+ <button class="rounded-lg bg-stone-800 text-white px-4 py-2 text-sm"
+ {% if not mp_configured and not donation_url %}disabled{% endif %}>
+ Doar com Mercado Pago
+ </button>
+ </form>
+ {% if donation_url %}
+ <p class="mt-2 text-xs text-stone-400">Ou <a class="underline text-teal-700" href="{{ donation_url }}" target="_blank" rel="noopener">abrir link de doação</a>.</p>
+ {% elif not mp_configured %}
+ <p class="mt-2 text-xs text-amber-700">Configure MERCADOPAGO_ACCESS_TOKEN ou MERCADOPAGO_DONATION_URL.</p>
+ {% endif %}
+ </section>
 
  <div class="mt-6 grid gap-4 sm:grid-cols-3 max-w-3xl">
  {% for key, p in all_plans.items() %}
@@ -80,11 +139,11 @@
  {% if key == effective_plan %}
  <p class="mt-3 text-xs text-teal-700 font-medium">Atual</p>
  {% elif key == 'pro' %}
- <form method="post" action="/app/billing/quero-pro" class="mt-3">
- <button class="text-xs text-teal-700 hover:underline">Quero Pro · R$ 10/mês</button>
+ <form method="post" action="/app/billing/pagar-pro" class="mt-3">
+ <button class="text-xs text-teal-700 hover:underline">Pagar · R$ 10</button>
  </form>
  {% else %}
- <p class="mt-3 text-xs text-stone-400">Fale conosco</p>
+ <p class="mt-3 text-xs text-stone-400">Sob consulta</p>
  {% endif %}
  </div>
  {% endfor %}

@@ -52,6 +52,7 @@ def ensure_schema() -> None:
         "ALTER TABLE agente.tenant_settings ADD COLUMN IF NOT EXISTS warmup_started_at TIMESTAMPTZ",
         "ALTER TABLE agente.tenant_settings ADD COLUMN IF NOT EXISTS chip_age TEXT",
         "ALTER TABLE agente.tenants ADD COLUMN IF NOT EXISTS trial_ends_at TIMESTAMPTZ",
+        "ALTER TABLE agente.tenants ADD COLUMN IF NOT EXISTS pro_until TIMESTAMPTZ",
         "ALTER TABLE agente.knowledge_entries ADD COLUMN IF NOT EXISTS embedding JSONB",
         "ALTER TABLE agente.knowledge_entries ADD COLUMN IF NOT EXISTS embedded_at TIMESTAMPTZ",
         """

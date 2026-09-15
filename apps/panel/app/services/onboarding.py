@@ -19,6 +19,7 @@ WIZARD_ALLOW_PREFIXES = (
     "/static",
     "/app/comecar",
     "/vendas",
+    "/doar",
 )
 
 NICHE_OPTIONS = [

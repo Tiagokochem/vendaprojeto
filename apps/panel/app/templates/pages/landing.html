@@ -83,7 +83,7 @@
  <p class="lp-section-lede">R$ 10/mês pelo SaaS (servidor e painel). O WhatsApp e a Evolution são seus.</p>
  <ul class="lp-promise">
  <li><strong>Free</strong>, teste com 5 envios/dia</li>
- <li><strong>Pro · R$ 10/mês</strong>, até 15/dia após aquecer o chip</li>
+ <li><strong>Pro · R$ 10/mês</strong>, até 15/dia após aquecer o chip (Mercado Pago)</li>
  <li>Chip, Evolution e risco de bloqueio: responsabilidade sua</li>
  </ul>
  <div class="lp-ctas lp-ctas-end">
@@ -91,9 +91,32 @@
  </div>
  </section>
 
+ <section class="lp-section" id="doar">
+ <h2 class="lp-h2">Quer só apoiar?</h2>
+ <p class="lp-section-lede">Doação voluntária (não é assinatura). Ajuda a manter o servidor no ar.</p>
+ {% if doar == 'ok' %}
+ <p class="lp-section-lede" style="color:#0f766e">Obrigado pela doação.</p>
+ {% elif doar == 'pendente' %}
+ <p class="lp-section-lede">Pagamento pendente. Obrigado mesmo assim.</p>
+ {% elif doar == 'indisponivel' or doar == 'erro' %}
+ <p class="lp-section-lede">Doação indisponível no momento.</p>
+ {% endif %}
+ {% if donation_url or mp_configured %}
+ <form method="post" action="/doar" class="lp-ctas lp-ctas-end" style="align-items:center;gap:0.75rem;flex-wrap:wrap">
+ <label style="font-size:0.9rem">
+ Valor R$
+ <input type="number" name="amount" min="1" value="10" style="width:4.5rem;margin-left:0.35rem;padding:0.4rem 0.5rem;border-radius:0.5rem;border:1px solid #d6d3d1" />
+ </label>
+ <button type="submit" class="lp-btn-primary">Doar com Mercado Pago</button>
+ </form>
+ {% else %}
+ <p class="lp-section-lede">Em breve: PIX / Mercado Pago.</p>
+ {% endif %}
+ </section>
+
  <footer class="lp-foot">
  <p>Vendaprojeto</p>
- <p><a href="/login">Painel</a> · <a href="/signup">Criar conta</a></p>
+ <p><a href="/login">Painel</a> · <a href="/signup">Criar conta</a> · <a href="/#doar">Doar</a></p>
  </footer>
 </body>
 </html>

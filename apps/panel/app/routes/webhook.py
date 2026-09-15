@@ -111,3 +111,52 @@ async def evolution_webhook(tenant_id: str, request: Request):
 
     result = hermes_ops.handle_inbound(tenant_id, phone, text)
     return JSONResponse(result)
+
+
+@router.post("/webhook/mercadopago")
+@router.get("/webhook/mercadopago")
+async def mercadopago_webhook(request: Request):
+    """Notificação MP: payment aprovado → ativa Pro (external_reference pro:<tenant_id>)."""
+    from app.services import billing as billing_svc
+    from app.services import mercadopago as mp
+
+    payment_id = request.query_params.get("data.id") or request.query_params.get("id")
+    topic = (request.query_params.get("type") or request.query_params.get("topic") or "").lower()
+
+    if request.method == "POST":
+        try:
+            body = await request.json()
+        except Exception:  # noqa: BLE001
+            body = {}
+        if isinstance(body, dict):
+            payment_id = payment_id or str((body.get("data") or {}).get("id") or body.get("id") or "")
+            topic = topic or str(body.get("type") or body.get("topic") or "").lower()
+
+    if not payment_id or topic not in ("", "payment", "payments"):
+        return JSONResponse({"ok": True, "skipped": "not_payment"})
+
+    payment = mp.fetch_payment(str(payment_id))
+    if not payment:
+        return JSONResponse({"ok": False, "error": "fetch"}, status_code=502)
+
+    status = (payment.get("status") or "").lower()
+    if status != "approved":
+        return JSONResponse({"ok": True, "skipped": status or "not_approved"})
+
+    ref = str(payment.get("external_reference") or "")
+    if ref.startswith("donation:"):
+        return JSONResponse({"ok": True, "kind": "donation"})
+
+    if not ref.startswith("pro:"):
+        return JSONResponse({"ok": True, "skipped": "unknown_ref"})
+
+    tenant_id = ref.split(":", 1)[1].strip()
+    if not tenant_id:
+        return JSONResponse({"ok": False, "error": "tenant"}, status_code=400)
+
+    # Dedup por payment id
+    if not _claim_webhook(tenant_id, f"mp:{payment_id}"):
+        return JSONResponse({"ok": True, "skipped": "duplicate"})
+
+    ok = billing_svc.activate_pro(tenant_id, payment_id=str(payment_id))
+    return JSONResponse({"ok": ok, "tenant_id": tenant_id})

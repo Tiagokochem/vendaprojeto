@@ -57,7 +57,7 @@ Demo local (só se não mudar o `.env`): `demo@vendaprojeto.local` / `demo1234`.
 5. **Aprendizados** – candidato → aprovação humana → KB (CRUD)  
 6. **Plano** – Free · Pro **R$ 10/mês** (SaaS/servidor) · trial 14 dias  
 
-### Preço e responsabilidades
+## Preço e pagamento
 
 | Incluso no Pro (R$ 10/mês) | Por conta do cliente |
 |----------------------------|----------------------|
@@ -65,7 +65,17 @@ Demo local (só se não mudar o `.env`): `demo@vendaprojeto.local` / `demo1234`.
 | Playbook, fila, aprendizado | Evolution API / infra de conexão |
 | | Apify / OpenAI se usar |
 
-Sem mock operacional: captura só via Apify; conversas só com mensagens reais.
+Pagamento via **Mercado Pago** (Checkout Pro). Doação voluntária na landing (`/#doar`).
+
+```bash
+# .env na VPS
+PUBLIC_BASE_URL=https://seu-dominio.com
+MERCADOPAGO_ACCESS_TOKEN=APP_USR-...
+# opcional: link de doação pronto no painel MP
+MERCADOPAGO_DONATION_URL=https://...
+```
+
+Webhook: `POST/GET /webhook/mercadopago` (configure a URL de notificação no app MP ou use a `notification_url` da preferência).
 
 ## Caps e aquecimento
 

@@ -33,6 +33,15 @@ class Settings(BaseSettings):
     apify_token: str = ""
     apify_actor_id: str = "compass/crawler-google-places"
 
+    # URL pública (VPS) para back_urls e webhooks do Mercado Pago
+    public_base_url: str = "http://127.0.0.1:8088"
+
+    # Mercado Pago (Checkout Pro + doação)
+    mercadopago_access_token: str = ""
+    mercadopago_public_key: str = ""
+    # Link pronto do MP (alternativa à preferência de doação)
+    mercadopago_donation_url: str = ""
+
     @property
     def database_url(self) -> str:
         return (

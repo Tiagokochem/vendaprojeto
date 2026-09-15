@@ -1,11 +1,12 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 
 from app import db
 from app.deps import get_session_user, redirect_login
 from app.services import billing as billing_svc
+from app.services import mercadopago as mp
 from app.services import onboarding, warmup as warmup_svc
 from app.services.limits import PLAN_LIMITS, PRICING_CLIENT_OWNS, PRICING_INCLUDES
 from app.services.tenant import daily_remaining, get_tenant
@@ -57,16 +58,67 @@ async def billing_page(request: Request):
             "status": onboarding.status_bar(tid),
             "pricing_includes": PRICING_INCLUDES,
             "pricing_client_owns": PRICING_CLIENT_OWNS,
+            "mp_configured": mp.configured(),
+            "donation_url": mp.donation_url(),
         },
     )
 
 
-@router.post("/app/billing/quero-pro")
-async def request_upgrade(request: Request):
-    """Interesse em upgrade, registra sem checkout (S11.4 stub)."""
+@router.post("/app/billing/trial")
+async def billing_trial(request: Request):
     user = get_session_user(request)
     if user is None:
         return redirect_login()
+    result = billing_svc.start_trial(str(user.tenant_id))
+    if not result or not result.get("ok"):
+        reason = (result or {}).get("reason") or "erro"
+        return RedirectResponse(f"/app/billing?flash={reason}", status_code=303)
+    return RedirectResponse("/app/billing?flash=trial_ok", status_code=303)
+
+
+@router.post("/app/billing/pagar-pro")
+async def billing_pay_pro(request: Request):
+    """Checkout Mercado Pago (R$ 10 = 1 mês Pro)."""
+    user = get_session_user(request)
+    if user is None:
+        return redirect_login()
+    if not mp.configured():
+        return RedirectResponse("/app/billing?flash=mp_nao_configurado", status_code=303)
+    checkout = mp.create_pro_checkout(
+        tenant_id=str(user.tenant_id),
+        email=user.email,
+        amount=float(PLAN_LIMITS["pro"]["price_brl"] or 10),
+    )
+    if not checkout:
+        return RedirectResponse("/app/billing?flash=mp_erro", status_code=303)
+    return RedirectResponse(checkout["init_point"], status_code=303)
+
+
+@router.post("/app/billing/doar")
+async def billing_donate(request: Request, amount: float = Form(10)):
+    """Doação via MP (preferência) ou link estático."""
+    user = get_session_user(request)
+    if user is None:
+        return redirect_login()
+    link = mp.donation_url()
+    if link:
+        return RedirectResponse(link, status_code=303)
+    if not mp.configured():
+        return RedirectResponse("/app/billing?flash=mp_nao_configurado", status_code=303)
+    checkout = mp.create_donation_checkout(amount=amount, email=user.email)
+    if not checkout:
+        return RedirectResponse("/app/billing?flash=mp_erro", status_code=303)
+    return RedirectResponse(checkout["init_point"], status_code=303)
+
+
+@router.post("/app/billing/quero-pro")
+async def request_upgrade(request: Request):
+    """Fallback: registra interesse se MP não estiver configurado."""
+    user = get_session_user(request)
+    if user is None:
+        return redirect_login()
+    if mp.configured():
+        return await billing_pay_pro(request)
     from psycopg.types.json import Json
 
     db.execute(
