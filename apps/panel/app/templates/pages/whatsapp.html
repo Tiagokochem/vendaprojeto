@@ -20,10 +20,10 @@
     </ol>
 
     <h1 class="mt-6 text-2xl font-semibold tracking-tight">Conectar WhatsApp</h1>
-    <p class="text-sm text-stone-500 mt-1">Passo 2 · idade do chip + conexão + teste do bot</p>
+    <p class="text-sm text-stone-500 mt-1">Passo 2 · idade do número + conexão + teste do bot</p>
 
     {% if flash == 'chip_ok' %}
-    <p class="mt-3 text-sm text-teal-800">Idade do chip salva. O limite de envio foi recalculado.</p>
+    <p class="mt-3 text-sm text-teal-800">Idade do número salva. O limite de envio foi recalculado.</p>
     {% elif flash == 'chip_erro' %}
     <p class="mt-3 text-sm text-amber-800">Opção inválida. Escolha de novo.</p>
     {% endif %}
@@ -32,8 +32,8 @@
       <div>
         <h2 class="font-medium text-sm">Há quanto tempo este número está ativo?</h2>
         <p class="text-xs text-stone-500 mt-1">
-          Isso define o ponto de partida. Chip novo começa baixo; chip antigo libera mais cedo.
-          Depois o sistema sobe o limite aos poucos (não libera tudo de uma vez).
+          Isso define o ponto de partida. Número novo começa baixo; número antigo libera mais cedo.
+          Depois o limite sobe aos poucos.
         </p>
         <form method="post" action="/app/whatsapp/chip-age" class="mt-3 space-y-2">
           {% for opt in chip_ages %}
@@ -47,11 +47,11 @@
             </span>
           </label>
           {% endfor %}
-          <button class="mt-2 rounded-lg bg-teal-700 text-white px-4 py-2 text-sm">Salvar idade do chip</button>
+          <button class="mt-2 rounded-lg bg-teal-700 text-white px-4 py-2 text-sm">Salvar idade do número</button>
         </form>
         {% if warmup and warmup.trajectory %}
         <p class="mt-3 text-xs text-stone-500">
-          Trajeto previsto com o perfil atual
+          Trajeto previsto
           {% if warmup.chip_age_label %}({{ warmup.chip_age_label }}){% endif %}:
           {% for t in warmup.trajectory %}
             dia {{ t.product_day }}→{{ t.cap }}{% if not loop.last %}, {% endif %}
@@ -65,60 +65,62 @@
     <div class="mt-6 rounded-xl border border-stone-200 bg-white p-6 space-y-4">
       {% if request.query_params.get('onboarding') %}
       <p class="text-sm text-teal-800 bg-teal-50 border border-teal-200 rounded-lg px-3 py-2">
-        Negócio salvo. Informe a idade do chip, conecte o WhatsApp e mande um oi (passo 3).
+        Negócio salvo. Informe a idade do número, conecte o WhatsApp e mande um oi (passo 3).
       </p>
       {% endif %}
 
       {% if settings and settings.evo_status == 'open' and not settings.smoke_ok %}
       <p class="text-sm text-amber-900 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-        WhatsApp conectado. <strong>Mande “oi” deste número para a instância</strong>.
-        O Hermes responde e libera os envios do dia.
+        WhatsApp conectado. <strong>Mande “oi” deste número para a conversa do bot</strong>.
+        O bot responde e libera os envios do dia.
       </p>
       {% endif %}
 
       {% if settings and settings.smoke_ok %}
       <p class="text-sm text-teal-800 bg-teal-50 border border-teal-200 rounded-lg px-3 py-2">
-        Bot validado. Envios do dia liberados conforme aquecimento.
+        Bot validado. Envios do dia liberados conforme o ritmo.
         <a href="/app" class="underline font-medium">Ir ao início</a>
       </p>
       {% endif %}
 
-      <p class="text-sm"><span class="text-stone-500">Instância:</span> <code class="text-xs bg-stone-100 px-1 rounded">{{ instance }}</code></p>
       <p class="text-sm"><span class="text-stone-500">Status:</span>
-        <span class="font-medium">{{ settings.evo_status if settings else 'disconnected' }}</span>
+        <span class="font-medium">{{ evo_label }}</span>
       </p>
 
       {% if not evolution_configured %}
       <p class="text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-        Configure EVOLUTION_BASE_URL e AUTHENTICATION_API_KEY no .env para conectar de verdade.
-        Sem isso o WhatsApp fica desconectado e não há envio real.
+        Conexão WhatsApp ainda não configurada no servidor. Peça ao admin para ligar a Evolution.
       </p>
-      {% endif %}
-
-      {% if live %}
-      <pre class="text-xs bg-stone-50 border border-stone-100 rounded-lg p-3 overflow-auto">{{ live }}</pre>
       {% endif %}
 
       <div class="flex flex-wrap gap-2">
         <form method="post" action="/app/whatsapp/connect">
           <button class="rounded-lg bg-teal-700 text-white px-4 py-2 text-sm" {% if not evolution_configured %}disabled{% endif %}>
-            Criar / conectar
+            Conectar
           </button>
         </form>
         <form method="post" action="/app/whatsapp/sync">
-          <button class="rounded-lg border border-stone-200 px-4 py-2 text-sm">Sincronizar status</button>
+          <button class="rounded-lg border border-stone-200 px-4 py-2 text-sm">Atualizar status</button>
         </form>
         <form method="post" action="/app/whatsapp/disconnect">
           <button class="rounded-lg border border-stone-200 px-4 py-2 text-sm">Desconectar</button>
         </form>
       </div>
-      {% if sync_detail %}
-      <p class="text-xs text-stone-400">Sync: {{ sync_detail }}</p>
-      {% endif %}
 
-      <p class="text-xs text-stone-400">
-        Webhook inbound: <code>/webhook/evolution/{{ user.tenant_id }}</code>
-      </p>
+      <details class="mt-2 text-sm">
+        <summary class="cursor-pointer text-stone-500 hover:text-stone-800">Detalhes técnicos</summary>
+        <div class="mt-2 space-y-2 rounded-lg border border-stone-100 bg-stone-50 p-3 text-xs text-stone-600">
+          <p>Instância: <code class="bg-white px-1 rounded">{{ instance }}</code></p>
+          <p>Status bruto: <code>{{ settings.evo_status if settings else 'disconnected' }}</code></p>
+          <p>Webhook inbound: <code>/webhook/evolution/{{ user.tenant_id }}</code></p>
+          {% if sync_detail %}
+          <p>Sync: {{ sync_detail }}</p>
+          {% endif %}
+          {% if live %}
+          <pre class="overflow-auto whitespace-pre-wrap">{{ live }}</pre>
+          {% endif %}
+        </div>
+      </details>
     </div>
   </main>
 </div>

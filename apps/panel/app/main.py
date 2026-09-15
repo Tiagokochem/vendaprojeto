@@ -54,6 +54,12 @@ app = FastAPI(title="Vendaprojeto", version="0.6.0", lifespan=lifespan)
 
 app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
 templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
+from app.services import ui_labels as _ui_labels
+
+templates.env.filters["stage_pt"] = _ui_labels.stage_label
+templates.env.filters["followup_pt"] = _ui_labels.followup_label
+templates.env.filters["intent_pt"] = _ui_labels.intent_label
+templates.env.filters["evo_pt"] = _ui_labels.evo_status_label
 app.state.templates = templates
 
 

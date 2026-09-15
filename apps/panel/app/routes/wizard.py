@@ -3,7 +3,6 @@ from __future__ import annotations
 from fastapi import APIRouter, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from hermes_core.openings import openings_for
-from hermes_core.playbooks import list_angles
 
 from app import db
 from app.deps import get_session_user, redirect_login
@@ -15,6 +14,8 @@ router = APIRouter(tags=["wizard"])
 def _wizard_ctx(request, user, tid, *, settings_row, niche, error=None, step=1):
     from app.services import warmup as warmup_svc
 
+    display = (settings_row or {}).get("display_name") or "Ana"
+    pack_prev = onboarding.pack_conversation_preview(niche, display)
     return {
         "request": request,
         "user": user,
@@ -25,12 +26,14 @@ def _wizard_ctx(request, user, tid, *, settings_row, niche, error=None, step=1):
         "error": error,
         "advanced": onboarding.is_advanced(request),
         "step": step,
-        "preview": onboarding.playbook_preview(niche),
-        "openings": openings_for(niche),
+        "preview": pack_prev.get("angles") or [],
+        "pack_preview": pack_prev,
+        "openings": pack_prev.get("openings") or openings_for(niche),
         "status": onboarding.status_bar(tid),
         "wa_risk": True,
         "warmup": warmup_svc.state_for_tenant(tid),
     }
+
 
 
 @router.get("/app/comecar", response_class=HTMLResponse)
@@ -173,19 +176,53 @@ async def preview_angles(request: Request, niche: str = "clinica"):
     user = get_session_user(request)
     if user is None:
         return redirect_login()
-    angles = list_angles(niche)[:3]
-    openings = openings_for(niche)
-    items = "".join(
+    from html import escape
+
+    tid = str(user.tenant_id)
+    row = onboarding.get_tenant_settings(tid) or {}
+    display = (row.get("display_name") or "Ana").strip() or "Ana"
+    prev = onboarding.pack_conversation_preview(niche, display)
+
+    faqs = "".join(
         (
-            f'<li class="text-sm text-stone-600">'
-            f'<span class="font-medium text-stone-800">{a.cta}</span>'
-            f'<span class="block text-xs text-stone-400 mt-0.5">Dor: {a.pain}</span></li>'
+            f'<li class="text-sm text-stone-600 mt-2">'
+            f'<span class="font-medium text-stone-800">{escape(f["question"])}</span>'
+            f'<span class="block text-xs text-stone-500 mt-0.5">{escape(f["answer"])}</span></li>'
         )
-        for a in angles
+        for f in prev["faqs"]
     )
-    opens = "".join(f'<option value="{o}">{o[:90]}</option>' for o in openings)
+    angles = "".join(
+        f'<li class="text-xs text-stone-500">· {escape(a["cta"])}</li>'
+        for a in prev["angles"]
+    )
+    opens = "".join(
+        f'<option value="{escape(o)}">{escape(o[:90])}{"…" if len(o) > 90 else ""}</option>'
+        for o in prev["openings"]
+    )
+    sample = escape(prev.get("sample_reply") or "")
+    opening = escape(prev.get("opening") or "")
     return HTMLResponse(
-        f'<ul class="space-y-2 mt-2">{items}</ul>'
-        f'<p class="text-xs text-stone-400 mt-3">Aberturas A/B atualizadas no select ao salvar.</p>'
-        f'<!-- openings:{len(opens)} -->'
+        f"""
+<div class="space-y-3 mt-2">
+  <div>
+    <p class="text-[10px] uppercase tracking-wide text-stone-400">Abertura</p>
+    <p class="text-sm text-stone-800 mt-0.5">{opening}</p>
+  </div>
+  <div>
+    <p class="text-[10px] uppercase tracking-wide text-stone-400">FAQ do pack</p>
+    <ul>{faqs}</ul>
+  </div>
+  <div>
+    <p class="text-[10px] uppercase tracking-wide text-stone-400">Se o lead perguntar preço</p>
+    <p class="text-sm text-stone-700 mt-0.5">{sample}</p>
+  </div>
+  <ul class="space-y-1 border-t border-stone-100 pt-2">{angles}</ul>
+</div>
+<select id="opening-pick" name="opening_pick"
+  class="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 text-sm"
+  hx-swap-oob="true">
+  <option value="">Usar playbook padrão</option>
+  {opens}
+</select>
+"""
     )

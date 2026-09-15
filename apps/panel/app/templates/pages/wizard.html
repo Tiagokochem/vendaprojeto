@@ -22,7 +22,7 @@
  <p class="text-xs uppercase tracking-widest text-teal-700 font-semibold mt-6">Passo 1 · Negócio</p>
  <h1 class="mt-2 text-2xl font-semibold tracking-tight">Seu negócio no ar</h1>
  <p class="mt-1 text-sm text-stone-500">
- Sem montar fluxo. Nicho + ritmo, o Hermes já sabe prospectar e responder.
+ Sem montar fluxo. Escolha o nicho e o ritmo; o bot já sabe prospectar e responder.
  </p>
 
  {% if error %}
@@ -83,12 +83,12 @@
  class="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2" />
  </label>
  <label class="block text-sm">
- <span class="text-stone-600">Envios por dia (meta; aquecimento pode limitar mais)</span>
+ <span class="text-stone-600">Envios por dia (meta; o limite sobe aos poucos no começo)</span>
  <input type="number" name="daily_limit" min="1" max="15"
  value="{{ settings.daily_limit if settings else 5 }}"
  class="mt-1 w-40 rounded-lg border border-stone-300 px-3 py-2" />
  <span class="block text-xs text-stone-400 mt-1">
- Comece com 5. Chip novo sobe sozinho: 5 → 8 → 12 → teto do plano. Janela 9h-18h (Brasília).
+ Comece com 5. Número novo sobe sozinho até o teto do plano. Janela 9h-18h (Brasília).
  </span>
  </label>
  <div class="flex gap-3">
@@ -113,7 +113,7 @@
  </label>
  <label class="block text-sm">
  <span class="text-stone-600">Abertura A/B (opcional)</span>
- <select name="opening_pick" class="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 text-sm">
+ <select id="opening-pick" name="opening_pick" class="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 text-sm">
  <option value="">Usar playbook padrão</option>
  {% for o in openings or [] %}
  <option value="{{ o }}">{{ o[:90] }}{% if o|length > 90 %}…{% endif %}</option>
@@ -125,16 +125,43 @@
 
  <section class="rounded-xl border border-stone-200 bg-white p-4">
  <h2 class="text-sm font-medium text-stone-800">Preview do playbook</h2>
- <p class="text-xs text-stone-500 mt-1">Exemplos de abertura, você não monta fluxo.</p>
+ <p class="text-xs text-stone-500 mt-1">Abertura, FAQ e um exemplo de resposta. Sem montar fluxo.</p>
  <div id="playbook-preview">
- <ul class="space-y-2 mt-2">
- {% for a in preview %}
- <li class="text-sm text-stone-600">
- <span class="font-medium text-stone-800">{{ a.cta }}</span>
- <span class="block text-xs text-stone-400 mt-0.5">Dor: {{ a.pain }}</span>
+ {% set pp = pack_preview or {} %}
+ <div class="space-y-3 mt-2">
+ {% if pp.opening %}
+ <div>
+ <p class="text-[10px] uppercase tracking-wide text-stone-400">Abertura</p>
+ <p class="text-sm text-stone-800 mt-0.5">{{ pp.opening }}</p>
+ </div>
+ {% endif %}
+ {% if pp.faqs %}
+ <div>
+ <p class="text-[10px] uppercase tracking-wide text-stone-400">FAQ do pack</p>
+ <ul>
+ {% for f in pp.faqs %}
+ <li class="text-sm text-stone-600 mt-2">
+ <span class="font-medium text-stone-800">{{ f.question }}</span>
+ <span class="block text-xs text-stone-500 mt-0.5">{{ f.answer }}</span>
  </li>
  {% endfor %}
  </ul>
+ </div>
+ {% endif %}
+ {% if pp.sample_reply %}
+ <div>
+ <p class="text-[10px] uppercase tracking-wide text-stone-400">Se o lead perguntar preço</p>
+ <p class="text-sm text-stone-700 mt-0.5">{{ pp.sample_reply }}</p>
+ </div>
+ {% endif %}
+ {% if pp.angles %}
+ <ul class="space-y-1 border-t border-stone-100 pt-2">
+ {% for a in pp.angles %}
+ <li class="text-xs text-stone-500">· {{ a.cta }}</li>
+ {% endfor %}
+ </ul>
+ {% endif %}
+ </div>
  </div>
  </section>
 

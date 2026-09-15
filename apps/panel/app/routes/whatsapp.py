@@ -5,7 +5,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 
 from app import db
 from app.deps import get_session_user, redirect_login
-from app.services import evolution, onboarding, warmup as warmup_svc
+from app.services import evolution, onboarding, warmup as warmup_svc, ui_labels
 from hermes_core.warmup import list_chip_ages
 
 router = APIRouter(tags=["whatsapp"])
@@ -40,6 +40,7 @@ async def whatsapp_page(request: Request):
             "warmup": warmup_svc.state_for_tenant(tid),
             "chip_ages": list_chip_ages(),
             "flash": request.query_params.get("flash"),
+            "evo_label": ui_labels.evo_status_label((row or {}).get("evo_status")),
         },
     )
 

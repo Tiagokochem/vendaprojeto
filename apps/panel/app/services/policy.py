@@ -347,7 +347,7 @@ def dominant_status(tenant_id: str) -> dict:
 
         wu = warmup_svc.state_for_tenant(tenant_id)
         if wu.get("active"):
-            chip = wu.get("chip_age_label") or "chip"
+            chip = wu.get("chip_age_label") or "número"
             return {
                 "key": "warmup",
                 "label": (
@@ -356,7 +356,7 @@ def dominant_status(tenant_id: str) -> dict:
                 ),
                 "tone": "warn",
                 "cta": "/app/whatsapp",
-                "cta_label": "Idade do chip",
+                "cta_label": "Idade do número",
                 "remaining": remaining,
                 "cap": cap,
                 "bot_enabled": True,

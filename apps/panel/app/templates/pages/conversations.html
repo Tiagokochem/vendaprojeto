@@ -42,7 +42,7 @@
  </div>
  <p class="mt-0.5 truncate text-xs text-stone-500">
  {% if lead.bot_paused %}Você no comando{% else %}Bot ativo{% endif %}
- · {{ lead.stage }}
+ · {{ lead.stage | stage_pt }}
  </p>
  {% if lead.last_message %}
  <p class="mt-0.5 truncate text-xs text-stone-400">{{ lead.last_message }}</p>
@@ -65,7 +65,7 @@
  <h2 class="font-medium">{{ active_lead.name or active_lead.company or active_phone }}</h2>
  <p class="text-xs text-stone-500">
  {{ active_phone }} · {{ active_lead.niche or '-' }}
- {% if intent_tag %}· <span class="text-teal-700 font-medium">{{ intent_tag }}</span>{% endif %}
+ {% if intent_tag %}· <span class="text-teal-700 font-medium">{{ intent_tag | intent_pt }}</span>{% endif %}
  </p>
  {% if active_lead.summary %}
  <p class="mt-1 max-w-xl text-sm text-stone-600">{{ active_lead.summary }}</p>
@@ -141,7 +141,7 @@
  <p class="text-xs text-stone-500">
  Follow-ups:
  {% for f in pending_followups %}
- <span class="inline-block bg-stone-100 rounded px-1.5 py-0.5 mr-1">{{ f.kind }} · {{ f.due_at }}</span>
+ <span class="inline-block bg-stone-100 rounded px-1.5 py-0.5 mr-1">{{ f.kind | followup_pt }} · {{ f.due_at }}</span>
  {% endfor %}
  </p>
  {% endif %}
@@ -149,7 +149,7 @@
  <form method="post" action="/app/conversas/{{ active_phone }}/stage" class="flex items-center gap-1">
  <select name="stage" class="rounded-lg border border-stone-200 text-sm px-2 py-1.5">
  {% for s in stages %}
- <option value="{{ s }}" {% if active_lead.stage == s %}selected{% endif %}>{{ s }}</option>
+ <option value="{{ s }}" {% if active_lead.stage == s %}selected{% endif %}>{{ s | stage_pt }}</option>
  {% endfor %}
  </select>
  <button class="text-sm rounded-lg border border-stone-200 px-3 py-1.5 hover:bg-stone-50">Estágio</button>

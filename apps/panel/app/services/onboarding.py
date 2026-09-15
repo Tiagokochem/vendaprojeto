@@ -107,6 +107,28 @@ def playbook_preview(niche: str, limit: int = 3) -> list[dict]:
     ]
 
 
+def pack_conversation_preview(niche: str, display_name: str = "Ana") -> dict:
+    """Preview rico: abertura + FAQs + exemplo de reply (modo simples)."""
+    from hermes_core.openings import default_opening, openings_for
+    from hermes_core.patterns import get_pack
+    from hermes_core.skills import run_skill
+
+    pack = get_pack(niche)
+    who = (display_name or "Ana").strip() or "Ana"
+    skill = run_skill(text="quanto custa?", display_name=who, niche=pack.key)
+    return {
+        "niche": pack.key,
+        "label": pack.label,
+        "offer": pack.offer,
+        "opening": default_opening(pack.key, who),
+        "openings": openings_for(pack.key),
+        "faqs": [{"question": f.question, "answer": f.answer} for f in pack.faqs[:3]],
+        "sample_intent": "Preço",
+        "sample_reply": skill.reply if skill else "",
+        "angles": playbook_preview(pack.key, 2),
+    }
+
+
 def seed_pack_kb(tenant_id: str, niche: str) -> int:
     """Insere FAQs do pack (idempotente por pergunta)."""
     from hermes_core.patterns import get_pack
