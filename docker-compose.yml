@@ -33,6 +33,7 @@ services:
       POSTGRES_PORT: "5432"
     ports:
       - "${PANEL_PORT:-8088}:8088"
+      - "8000:8088"
     volumes:
       - ./apps/panel/app:/app/app:ro
       - ./packages:/app/packages:ro

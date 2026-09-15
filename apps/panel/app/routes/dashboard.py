@@ -19,10 +19,6 @@ async def app_home(request: Request):
     if user is None:
         return redirect_login()
 
-    gate = onboarding.maybe_redirect_wizard(request, str(user.tenant_id))
-    if gate:
-        return gate
-
     tid = str(user.tenant_id)
     remaining, cap = daily_remaining(tid)
     insights = decision_stats(tid, hours=24)

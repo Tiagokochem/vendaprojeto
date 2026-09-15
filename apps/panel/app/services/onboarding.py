@@ -74,15 +74,9 @@ def path_allowed_without_wizard(path: str) -> bool:
 
 
 def maybe_redirect_wizard(request: Request, tenant_id: str) -> RedirectResponse | None:
-    """Se wizard incompleto, manda para /app/comecar."""
-    path = request.url.path
-    if path_allowed_without_wizard(path):
-        return None
-    if not path.startswith("/app"):
-        return None
-    if wizard_done(tenant_id):
-        return None
-    return RedirectResponse("/app/comecar", status_code=303)
+    """Gate suave: não prende a navegação. Envios continuam bloqueados em policy."""
+    del request, tenant_id
+    return None
 
 
 def onboarding_step(tenant_id: str) -> int:

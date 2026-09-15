@@ -87,22 +87,6 @@ async def security_headers(request: Request, call_next):
     return response
 
 
-@app.middleware("http")
-async def wizard_gate(request: Request, call_next):
-    """Obriga wizard antes do restante do /app (promessa: sem montar fluxo)."""
-    from app.deps import get_session_user
-    from app.services import onboarding
-
-    path = request.url.path
-    if path.startswith("/app") and not onboarding.path_allowed_without_wizard(path):
-        user = get_session_user(request)
-        if user is not None:
-            redir = onboarding.maybe_redirect_wizard(request, str(user.tenant_id))
-            if redir is not None:
-                return redir
-    return await call_next(request)
-
-
 # SessionMiddleware por último = mais externo (último add = executa primeiro)
 app.add_middleware(
     SessionMiddleware,

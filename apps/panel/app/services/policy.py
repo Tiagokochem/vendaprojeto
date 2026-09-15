@@ -225,6 +225,16 @@ def dominant_status(tenant_id: str) -> dict:
     q_start = int(settings_row.get("quiet_start") or DEFAULT_QUIET_START)
     q_end = int(settings_row.get("quiet_end") or DEFAULT_QUIET_END)
 
+    if not settings_row.get("wizard_done"):
+        return {
+            "key": "wizard",
+            "label": "Falta salvar o negócio para liberar o bot",
+            "tone": "warn",
+            "cta": "/app/comecar",
+            "cta_label": "Meu negócio",
+            "remaining": remaining,
+            "cap": cap,
+        }
     if evo != "open":
         return {
             "key": "wa_down",
