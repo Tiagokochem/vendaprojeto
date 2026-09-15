@@ -20,10 +20,13 @@ log = logging.getLogger("vendaprojeto.capture")
 
 # Nichos → termos GMaps (defaults do produto)
 NICHE_TERMS: dict[str, list[str]] = {
-    "clinica": ["clínica odontológica", "clínica estética", "consultório"],
+    "clinica": ["clínica odontológica", "consultório médico", "fisioterapia"],
     "loja": ["loja de roupas", "ótica", "pet shop"],
     "food": ["restaurante", "pizzaria", "padaria"],
-    "servico": ["barbearia", "salão de beleza", "oficina mecânica"],
+    "salao": ["barbearia", "salão de beleza", "cabeleireiro"],
+    "estetica": ["clínica de estética", "spa", "depilação"],
+    "oficina": ["oficina mecânica", "auto center", "funilaria"],
+    "servico": ["academia", "pilates", "jardinagem"],
     "imobiliaria": ["imobiliária", "corretor de imóveis"],
     "educacao": ["curso de idiomas", "escola particular", "cursinho"],
     "advocacia": ["escritório de advocacia", "advogado"],

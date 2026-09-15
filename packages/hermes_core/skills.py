@@ -190,6 +190,9 @@ def run_skill(
             "food": "horário de conversa rápida",
             "educacao": "conversa sobre a turma",
             "advocacia": "consulta",
+            "salao": "horário",
+            "estetica": "avaliação",
+            "oficina": "diagnóstico ou orçamento",
         }.get(pack_key, "horário")
         slots = (
             f"Pode ser amanhã de manhã ou no fim da tarde para alinhar {slot_hint}. Prefere qual? "
@@ -228,6 +231,9 @@ def run_skill(
             "clinica": "muitas clínicas começam só com lembrete de consulta",
             "loja": "dá pra testar um catálogo pequeno antes de loja completa",
             "food": "cardápio digital costuma ser o primeiro passo barato",
+            "salao": "confirmação de horário no WhatsApp já reduz furo de agenda",
+            "estetica": "triagem de procedimento libera a agenda pras avaliações quentes",
+            "oficina": "status e orçamento no zap reduzem mensagem repetida",
             "servico": "agenda online resolve boa parte da fila de orçamento",
             "imobiliaria": "triagem automática libera o corretor pras visitas quentes",
             "educacao": "FAQ de matrícula reduz boa parte das mensagens repetidas",

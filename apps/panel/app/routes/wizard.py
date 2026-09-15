@@ -16,6 +16,13 @@ def _wizard_ctx(request, user, tid, *, settings_row, niche, error=None, step=1):
 
     display = (settings_row or {}).get("display_name") or "Ana"
     pack_prev = onboarding.pack_conversation_preview(niche, display)
+    pack = None
+    try:
+        from hermes_core.patterns import get_pack
+
+        pack = get_pack(niche)
+    except Exception:  # noqa: BLE001
+        pack = None
     return {
         "request": request,
         "user": user,
@@ -29,6 +36,8 @@ def _wizard_ctx(request, user, tid, *, settings_row, niche, error=None, step=1):
         "preview": pack_prev.get("angles") or [],
         "pack_preview": pack_prev,
         "openings": pack_prev.get("openings") or openings_for(niche),
+        "pack_quiet_start": int(pack.quiet_start) if pack else 9,
+        "pack_quiet_end": int(pack.quiet_end) if pack else 18,
         "status": onboarding.status_bar(tid),
         "wa_risk": True,
         "warmup": warmup_svc.state_for_tenant(tid),
@@ -109,14 +118,18 @@ async def wizard_submit(
         )
 
     opening = (opening_pick or "").strip()[:400] or None
-    qs = max(0, min(int(quiet_start), 23))
-    qe = max(1, min(int(quiet_end), 24))
-    if qs == qe:
-        qs, qe = 9, 18
-
     from hermes_core.patterns import get_pack
 
-    pack_cap = int(get_pack(niche).daily_sends)
+    pack = get_pack(niche)
+    # Se o usuário deixou 9–18 (default genérico), aplica janela sugerida do pack
+    qs = max(0, min(int(quiet_start), 23))
+    qe = max(1, min(int(quiet_end), 24))
+    if qs == 9 and qe == 18 and (pack.quiet_start != 9 or pack.quiet_end != 18):
+        qs, qe = int(pack.quiet_start), int(pack.quiet_end)
+    if qs == qe:
+        qs, qe = int(pack.quiet_start), int(pack.quiet_end)
+
+    pack_cap = int(pack.daily_sends)
     daily = max(1, min(int(daily_limit), pack_cap, 15))
 
     db.execute(
@@ -201,6 +214,9 @@ async def preview_angles(request: Request, niche: str = "clinica"):
     )
     sample = escape(prev.get("sample_reply") or "")
     opening = escape(prev.get("opening") or "")
+    from hermes_core.patterns import get_pack
+
+    pack = get_pack(niche)
     return HTMLResponse(
         f"""
 <div class="space-y-3 mt-2">
@@ -216,6 +232,7 @@ async def preview_angles(request: Request, niche: str = "clinica"):
     <p class="text-[10px] uppercase tracking-wide text-stone-400">Se o lead perguntar preço</p>
     <p class="text-sm text-stone-700 mt-0.5">{sample}</p>
   </div>
+  <p class="text-xs text-stone-500">Janela sugerida: {pack.quiet_start}h–{pack.quiet_end}h · FU base {pack.fu_n1_hours}h</p>
   <ul class="space-y-1 border-t border-stone-100 pt-2">{angles}</ul>
 </div>
 <select id="opening-pick" name="opening_pick"
@@ -224,5 +241,13 @@ async def preview_angles(request: Request, niche: str = "clinica"):
   <option value="">Usar playbook padrão</option>
   {opens}
 </select>
+<input type="number" name="quiet_start" id="quiet-start" min="0" max="23"
+  value="{pack.quiet_start}"
+  class="mt-1 w-20 rounded-lg border border-stone-300 px-3 py-2"
+  hx-swap-oob="true" />
+<input type="number" name="quiet_end" id="quiet-end" min="1" max="24"
+  value="{pack.quiet_end}"
+  class="mt-1 w-20 rounded-lg border border-stone-300 px-3 py-2"
+  hx-swap-oob="true" />
 """
     )

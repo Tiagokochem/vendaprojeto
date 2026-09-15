@@ -25,6 +25,12 @@ class ServicePack:
     daily_sends: int
     faqs: tuple[FaqSeed, ...]
     detect: tuple[str, ...]  # substrings para detect_niche
+    # Janela comercial sugerida (horas locais) e cadência de follow-up
+    quiet_start: int = 9
+    quiet_end: int = 18
+    fu_n1_hours: int = 24
+    fu_n3_hours: int = 72
+    fu_objection_hours: int = 72
 
 
 SERVICE_PACKS: dict[str, ServicePack] = {
@@ -48,6 +54,10 @@ SERVICE_PACKS: dict[str, ServicePack] = {
             "Vocês retomam quem pediu horário e não fechou?",
         ),
         daily_sends=10,
+        quiet_start=8,
+        quiet_end=18,
+        fu_n1_hours=24,
+        fu_n3_hours=72,
         faqs=(
             FaqSeed(
                 "Vocês atendem convênio?",
@@ -170,6 +180,11 @@ SERVICE_PACKS: dict[str, ServicePack] = {
             "Vocês retomam quem pediu cardápio e não fechou?",
         ),
         daily_sends=12,
+        quiet_start=10,
+        quiet_end=22,
+        fu_n1_hours=12,
+        fu_n3_hours=48,
+        fu_objection_hours=48,
         faqs=(
             FaqSeed(
                 "Faz entrega?",
@@ -213,6 +228,146 @@ SERVICE_PACKS: dict[str, ServicePack] = {
             "acai",
         ),
     ),
+    "salao": ServicePack(
+        key="salao",
+        label="Salão / barbearia",
+        blurb="Agenda, confirmação e menos furo no horário",
+        offer="agenda e confirmação de horário no WhatsApp",
+        pains=(
+            "cliente marca e não aparece, horário fica buraco",
+            "WhatsApp vira fila de 'tem horário amanhã?'",
+            "confirmação ainda é uma a uma no zap",
+            "promoção no Instagram e ninguém agenda de verdade",
+            "equipe perde tempo repetindo preço de corte e escova",
+            "encaixe de última hora bagunça a agenda do dia",
+        ),
+        ctas=(
+            "Vocês confirmam horário no dia anterior?",
+            "Quantos furos de agenda por semana?",
+            "O zap ainda é 100% manual pra marcar horário?",
+            "O gargalo é agenda ou resposta de preço?",
+        ),
+        daily_sends=10,
+        quiet_start=9,
+        quiet_end=20,
+        fu_n1_hours=24,
+        fu_n3_hours=72,
+        faqs=(
+            FaqSeed(
+                "Tem horário amanhã?",
+                "Me diga o serviço e o período (manhã/tarde) que confirmo a próxima vaga.",
+            ),
+            FaqSeed(
+                "Quanto custa o corte?",
+                "Depende do serviço. Me diga o que precisa que te passo a faixa.",
+            ),
+            FaqSeed(
+                "Aceita Pix?",
+                "Sim. Depois de marcar te mando o valor e a forma de pagamento.",
+            ),
+            FaqSeed(
+                "Atende criança?",
+                "Em vários casos sim. Me diga a idade e o serviço que confirmo.",
+            ),
+            FaqSeed(
+                "Precisa agendar?",
+                "Sim, pra garantir horário. Prefere manhã ou tarde?",
+            ),
+        ),
+        detect=("salão", "salao", "barbearia", "barbeiro", "cabeleireir", "manicure", "nail"),
+    ),
+    "estetica": ServicePack(
+        key="estetica",
+        label="Estética / beleza",
+        blurb="Triagem de procedimento e agenda sem bagunça",
+        offer="triagem de interesse + agendamento de avaliação no WhatsApp",
+        pains=(
+            "lead pergunta preço de procedimento e some",
+            "WhatsApp mistura curiosidade com cliente pronto pra agendar",
+            "avaliação marcada sem contexto do que a pessoa quer",
+            "mesmas dúvidas de pós e contraindicação o dia todo",
+            "promoção no story e a agenda não enche",
+        ),
+        ctas=(
+            "A triagem de procedimento ainda é 100% humana no zap?",
+            "Vocês retomam quem pediu preço e não agendou?",
+            "O gargalo é avaliação ou resposta de orçamento?",
+        ),
+        daily_sends=10,
+        quiet_start=9,
+        quiet_end=19,
+        fu_n1_hours=24,
+        fu_n3_hours=72,
+        faqs=(
+            FaqSeed(
+                "Quanto custa?",
+                "Depende do procedimento. Me diga o que busca que te passo uma faixa e a próxima avaliação.",
+            ),
+            FaqSeed(
+                "Precisa de avaliação?",
+                "Na maioria dos casos sim. Prefere manhã ou tarde esta semana?",
+            ),
+            FaqSeed(
+                "Dói?",
+                "Varia com o procedimento. Quer que um humano te explique com calma?",
+            ),
+            FaqSeed(
+                "Tem contraindicação?",
+                "Depende do histórico. Me diga o procedimento que te oriento o próximo passo.",
+            ),
+            FaqSeed(
+                "Aceita Pix?",
+                "Sim. Depois da avaliação alinhamos valor e pagamento.",
+            ),
+        ),
+        detect=("estética", "estetica", "spa ", "depilação", "depilacao", "harmonização", "harmonizacao", "limpeza de pele"),
+    ),
+    "oficina": ServicePack(
+        key="oficina",
+        label="Oficina / auto",
+        blurb="Orçamento e status do serviço sem fila no zap",
+        offer="orçamento e atualização de status no WhatsApp",
+        pains=(
+            "cliente pergunta status do carro o dia todo",
+            "orçamento repetido pra todo mundo que manda foto",
+            "aprovação demora e a oficina fica parada",
+            "WhatsApp mistura emergência, peça e 'quanto fica?'",
+            "ninguém retoma quem pediu orçamento e sumiu",
+        ),
+        ctas=(
+            "Status do serviço ainda é 100% manual no zap?",
+            "Quantos orçamentos ficam sem retorno por semana?",
+            "O gargalo é orçamento ou aprovação do cliente?",
+        ),
+        daily_sends=10,
+        quiet_start=8,
+        quiet_end=18,
+        fu_n1_hours=24,
+        fu_n3_hours=72,
+        faqs=(
+            FaqSeed(
+                "Quanto fica?",
+                "Depende do serviço. Me manda o modelo e o que precisa que te passo uma faixa.",
+            ),
+            FaqSeed(
+                "Quanto tempo demora?",
+                "Varia com a peça e a fila. Me diga o serviço que te dou a previsão.",
+            ),
+            FaqSeed(
+                "Tem horário hoje?",
+                "Me diga o período e o que precisa que confirmo a encaixe.",
+            ),
+            FaqSeed(
+                "Aceita Pix?",
+                "Sim. Depois de aprovar o orçamento te mando o valor.",
+            ),
+            FaqSeed(
+                "Faz diagnóstico?",
+                "Sim. Prefere deixar o carro de manhã ou à tarde?",
+            ),
+        ),
+        detect=("oficina", "mecânic", "mecanic", "auto center", "autocenter", "funilaria", "borracharia"),
+    ),
     "servico": ServicePack(
         key="servico",
         label="Serviço local",
@@ -233,6 +388,8 @@ SERVICE_PACKS: dict[str, ServicePack] = {
             "O gargalo é agenda ou resposta de orçamento?",
         ),
         daily_sends=10,
+        quiet_start=9,
+        quiet_end=18,
         faqs=(
             FaqSeed(
                 "Quanto custa?",
@@ -259,23 +416,7 @@ SERVICE_PACKS: dict[str, ServicePack] = {
                 "Sim. Depois de alinhar o serviço te mando o valor e a forma de pagamento.",
             ),
         ),
-        detect=(
-            "salão",
-            "salao",
-            "barbearia",
-            "academia",
-            "pilates",
-            "oficina",
-            "mecânic",
-            "mecanic",
-            "beleza",
-            "estética",
-            "estetica",
-            "serviço",
-            "servico",
-            "manicure",
-            "lavagem",
-        ),
+        detect=("academia", "pilates", "serviço", "servico", "lavagem", "personal", "jardinagem"),
     ),
     "imobiliaria": ServicePack(
         key="imobiliaria",
@@ -295,6 +436,10 @@ SERVICE_PACKS: dict[str, ServicePack] = {
             "Vocês filtram orçamento e região antes da visita?",
         ),
         daily_sends=12,
+        quiet_start=9,
+        quiet_end=19,
+        fu_n1_hours=24,
+        fu_n3_hours=96,
         faqs=(
             FaqSeed(
                 "Aceita FGTS?",
@@ -379,6 +524,11 @@ SERVICE_PACKS: dict[str, ServicePack] = {
             "Urgência de prazo chega organizada ou misturada?",
         ),
         daily_sends=10,
+        quiet_start=9,
+        quiet_end=18,
+        fu_n1_hours=48,
+        fu_n3_hours=96,
+        fu_objection_hours=96,
         faqs=(
             FaqSeed(
                 "Atendem minha área?",
@@ -502,12 +652,15 @@ def get_pack(key: str | None) -> ServicePack:
     return SERVICE_PACKS["geral"]
 
 
-# Ordem importa: mais específico antes de genérico (pet > loja; advocacia > geral)
+# Ordem: específico antes de genérico (salao/estetica/oficina antes de servico)
 _DETECT_ORDER = (
     "pet",
     "advocacia",
     "imobiliaria",
     "educacao",
+    "estetica",
+    "salao",
+    "oficina",
     "clinica",
     "food",
     "servico",

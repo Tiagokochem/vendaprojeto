@@ -598,10 +598,13 @@ def handle_inbound(tenant_id: str, phone: str, text: str) -> dict:
         from app.services import followups
 
         stage_now = db.fetch_one(
-            "SELECT stage FROM agente.lead_profiles WHERE tenant_id = %s AND phone = %s",
+            "SELECT stage, niche FROM agente.lead_profiles WHERE tenant_id = %s AND phone = %s",
             (tenant_id, phone),
         )
-        step = next_followup_for_stage((stage_now or {}).get("stage"))
+        niche_now = (stage_now or {}).get("niche") or (
+            (settings_row.get("niches") or [None])[0]
+        )
+        step = next_followup_for_stage((stage_now or {}).get("stage"), niche_now)
         if step:
             followups.schedule(tenant_id, phone, kind=step.kind, hours=step.hours)
 
@@ -653,7 +656,12 @@ def _apply_skill_effects(tenant_id: str, phone: str, skill) -> None:
     if skill.followup_hours:
         from hermes_core.cadence import cadence_for_intent
 
-        step = cadence_for_intent(skill.intent)
+        lead = db.fetch_one(
+            "SELECT niche FROM agente.lead_profiles WHERE tenant_id = %s AND phone = %s",
+            (tenant_id, phone),
+        )
+        niche = (lead or {}).get("niche")
+        step = cadence_for_intent(skill.intent, niche)
         followups.schedule(
             tenant_id,
             phone,

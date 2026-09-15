@@ -8,7 +8,7 @@
 
 Nicho · WhatsApp · Ritmo (N/dia) · Meta (reply / agenda / handoff)
 
-Packs prontos: clínica, loja, food, serviço, imobiliária, educação, advocacia, pet.
+Packs prontos: clínica, loja, food, salão, estética, oficina, serviço, imobiliária, educação, advocacia, pet.
 
 ## Onboarding
 

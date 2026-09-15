@@ -108,19 +108,36 @@ def test_service_packs_depth():
     assert detect_niche("Advocacia Silva", None) == "advocacia"
     assert detect_niche("Pet Shop Rex", None) == "pet"
     assert detect_niche("Clínica Veterinária Amiga", None) == "pet"
-    assert detect_niche("Estética Bella", None) == "servico"
+    assert detect_niche("Estética Bella", None) == "estetica"
+    assert detect_niche("Barbearia Central", None) == "salao"
+    assert detect_niche("Oficina do João", None) == "oficina"
     assert detect_niche("Clínica Sorriso Odontologia", None) == "clinica"
 
 
 def test_openings_min_three():
     from hermes_core.openings import default_opening, openings_for
 
-    for key in ("clinica", "loja", "food", "servico", "geral"):
+    for key in ("clinica", "loja", "food", "servico", "salao", "estetica", "oficina", "geral"):
         opts = openings_for(key)
         assert len(opts) >= 3, key
     d = default_opening("clinica", "Ana")
     assert "?" in d
     assert "Ana" in d
+
+
+def test_pack_cadence_by_niche():
+    from hermes_core.cadence import cadence_for_intent, next_followup_for_stage
+    from hermes_core.patterns import get_pack
+
+    food = get_pack("food")
+    advocacia = get_pack("advocacia")
+    assert food.fu_n1_hours < advocacia.fu_n1_hours
+    assert food.quiet_end > 18
+    n1_food = next_followup_for_stage("sent", "food")
+    n1_adv = next_followup_for_stage("sent", "advocacia")
+    assert n1_food and n1_adv and n1_food.hours < n1_adv.hours
+    price = cadence_for_intent("price", "food")
+    assert price and price.hours == food.fu_n1_hours
 
 
 def test_outbound_override():

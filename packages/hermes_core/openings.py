@@ -25,6 +25,24 @@ OPENING_TEMPLATES: dict[str, tuple[str, ...]] = {
         "Oi {empresa}! Sou {nome}. No pico, quem organiza o pedido: cozinha ou o zap?",
         "Oi! Sou {nome}. Faço cardápio digital pra pedido sem bagunça no pico.",
     ),
+    "salao": (
+        "Oi {empresa}! Sou {nome}. Vocês confirmam horário no dia anterior?",
+        "Oi! Sou {nome}. Quantos furos de agenda por semana?",
+        "Oi {empresa}! Sou {nome}. O zap ainda é 100% manual pra marcar horário?",
+        "Oi! Sou {nome}. Organizo agenda e confirmação pra salão e barbearia.",
+    ),
+    "estetica": (
+        "Oi {empresa}! Sou {nome}. A triagem de procedimento ainda é 100% humana no zap?",
+        "Oi! Sou {nome}. Vocês retomam quem pediu preço e não agendou?",
+        "Oi {empresa}! Sou {nome}. O gargalo é avaliação ou orçamento?",
+        "Oi! Sou {nome}. Ajudo clínicas de estética a triar e agendar pelo WhatsApp.",
+    ),
+    "oficina": (
+        "Oi {empresa}! Sou {nome}. Status do serviço ainda é 100% manual no zap?",
+        "Oi! Sou {nome}. Quantos orçamentos ficam sem retorno por semana?",
+        "Oi {empresa}! Sou {nome}. O gargalo é orçamento ou aprovação do cliente?",
+        "Oi! Sou {nome}. Organizo orçamento e status de oficina no WhatsApp.",
+    ),
     "servico": (
         "Oi {empresa}! Sou {nome}. Orçamento ainda é um a um no zap?",
         "Oi! Sou {nome}. Agenda hoje é manual ou já têm reserva online?",

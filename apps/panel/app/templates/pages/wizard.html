@@ -94,14 +94,14 @@
  <div class="flex gap-3">
  <label class="block text-sm">
  <span class="text-stone-600">Início (h)</span>
- <input type="number" name="quiet_start" min="0" max="23"
- value="{{ settings.quiet_start if settings and settings.quiet_start is defined else 9 }}"
+ <input type="number" name="quiet_start" min="0" max="23" id="quiet-start"
+ value="{{ settings.quiet_start if settings and settings.quiet_start is defined else pack_quiet_start }}"
  class="mt-1 w-20 rounded-lg border border-stone-300 px-3 py-2" />
  </label>
  <label class="block text-sm">
  <span class="text-stone-600">Fim (h)</span>
- <input type="number" name="quiet_end" min="1" max="24"
- value="{{ settings.quiet_end if settings and settings.quiet_end is defined else 18 }}"
+ <input type="number" name="quiet_end" min="1" max="24" id="quiet-end"
+ value="{{ settings.quiet_end if settings and settings.quiet_end is defined else pack_quiet_end }}"
  class="mt-1 w-20 rounded-lg border border-stone-300 px-3 py-2" />
  </label>
  </div>
