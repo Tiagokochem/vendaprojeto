@@ -171,4 +171,4 @@ docs/                 # operação e sprints
 
 ## Licença
 
-MIT. Use, copie e adapte. O risco de bloqueio do WhatsApp (conexão não oficial / Evolution) é de quem opera o número.
+MIT. Use, copie e adapte. Cada operador usa o próprio número e a própria conexão WhatsApp.

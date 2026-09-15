@@ -69,7 +69,7 @@ def create_pro_checkout(
             {
                 "id": "pro-month",
                 "title": "Vendaprojeto Pro (1 mês)",
-                "description": "Painel SaaS, servidor e Hermes. WhatsApp/Evolution por sua conta.",
+                "description": "Painel, servidor e Hermes. Você conecta o seu WhatsApp.",
                 "quantity": 1,
                 "currency_id": "BRL",
                 "unit_price": float(amount),
