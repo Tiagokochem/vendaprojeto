@@ -1,11 +1,14 @@
 {% extends "base.html" %}
-{% block title %}Config · Vendaprojeto{% endblock %}
+{% block title %}Meu perfil · Vendaprojeto{% endblock %}
 {% block body %}
 <div class="app-shell">
   {% include "partials/nav.html" %}
   <main class="app-main max-w-3xl">
-    <h1 class="text-2xl font-semibold tracking-tight">Plano de negócio</h1>
-    <p class="text-sm text-stone-500 mt-1">Identidade, nichos e limites do tenant</p>
+    <h1 class="text-2xl font-semibold tracking-tight">Meu perfil</h1>
+    <p class="text-sm text-stone-500 mt-1">Identidade, oferta e limites do seu negócio</p>
+    {% if user_email %}
+    <p class="mt-2 text-sm text-stone-600">Conta: <span class="font-medium text-stone-800">{{ user_email }}</span></p>
+    {% endif %}
 
     {% if saved %}
     <p class="mt-4 rounded-lg bg-teal-50 text-teal-800 text-sm px-3 py-2">Salvo.</p>

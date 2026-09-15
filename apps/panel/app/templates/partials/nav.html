@@ -39,6 +39,7 @@
   <a href="/app/comecar" @click="navOpen = false" class="rounded-lg px-3 py-2 text-sm hover:bg-stone-100 {% if path.startswith('/app/comecar') %}bg-stone-100 font-medium{% endif %}">Meu negócio</a>
   <a href="/app/aprendizados" @click="navOpen = false" class="rounded-lg px-3 py-2 text-sm hover:bg-stone-100 {% if path.startswith('/app/aprendizados') %}bg-stone-100 font-medium{% endif %}">Aprendizados</a>
   <a href="/app/billing" @click="navOpen = false" class="rounded-lg px-3 py-2 text-sm hover:bg-stone-100 {% if path.startswith('/app/billing') %}bg-stone-100 font-medium{% endif %}">Plano</a>
+  <a href="/app/config" @click="navOpen = false" class="rounded-lg px-3 py-2 text-sm hover:bg-stone-100 {% if path.startswith('/app/config') %}bg-stone-100 font-medium{% endif %}">Meu perfil</a>
 
   {% if advanced %}
   <div class="my-2 border-t border-stone-100"></div>
@@ -50,10 +51,12 @@
   <a href="/app/auditoria" @click="navOpen = false" class="rounded-lg px-3 py-2 text-sm hover:bg-stone-100 {% if path.startswith('/app/auditoria') %}bg-stone-100 font-medium{% endif %}">Auditoria</a>
   <a href="/app/privacidade" @click="navOpen = false" class="rounded-lg px-3 py-2 text-sm hover:bg-stone-100 {% if path.startswith('/app/privacidade') %}bg-stone-100 font-medium{% endif %}">Privacidade</a>
   <a href="/app/flow-studio" @click="navOpen = false" class="rounded-lg px-3 py-2 text-sm hover:bg-stone-100 {% if path.startswith('/app/flow-studio') %}bg-stone-100 font-medium{% endif %}">Flow Studio</a>
-  <a href="/app/config" @click="navOpen = false" class="rounded-lg px-3 py-2 text-sm hover:bg-stone-100 {% if path.startswith('/app/config') %}bg-stone-100 font-medium{% endif %}">Config detalhada</a>
   {% endif %}
 
-  <div class="mt-auto border-t border-stone-100 pt-4">
+  <div class="mt-auto border-t border-stone-100 pt-4 space-y-1">
+    {% if user_email is defined and user_email %}
+    <p class="truncate px-3 text-[11px] text-stone-400" title="{{ user_email }}">{{ user_email }}</p>
+    {% endif %}
     {% if advanced %}
     <form method="post" action="/app/modo">
       <input type="hidden" name="mode" value="simple" />
@@ -65,5 +68,8 @@
       <button class="w-full rounded-lg px-3 py-2 text-left text-xs text-stone-500 hover:bg-stone-100">Mostrar avançado</button>
     </form>
     {% endif %}
+    <form method="post" action="/logout">
+      <button type="submit" class="w-full rounded-lg px-3 py-2 text-left text-sm text-stone-700 hover:bg-stone-100">Sair</button>
+    </form>
   </div>
 </aside>

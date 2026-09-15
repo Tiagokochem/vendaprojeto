@@ -1,0 +1,10 @@
+{
+  "name": "vendaprojeto-panel",
+  "private": true,
+  "scripts": {
+    "build:css": "tailwindcss -i ./apps/panel/app/static/css/tailwind.input.css -o ./apps/panel/app/static/css/tailwind.css --minify"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.17"
+  }
+}
