@@ -51,11 +51,18 @@ def generate_outbound(
             intro = intro.replace("{nome}", contact_name or "")
         message = _strip_dashes(f"{intro} {cta}".strip())
     else:
-        intro = f"Oi! Sou {who}. Trabalho com site, automação e IA para negócios locais."
-        pain_line = f"Muitos {company or 'negócios como o seu'} sofrem com {pain}."
-        offer_line = f"Consigo ajudar com {offer}."
-        close = f"Site: {site} {cta}"
-        message = _strip_dashes(f"{intro} {pain_line} {offer_line} {close}".strip())
+        from hermes_core.openings import default_opening
+
+        intro = default_opening(niche_key, who)
+        # default_opening já pode trazer pergunta; evita CTA duplicada se a intro pergunta
+        if "?" in intro:
+            pain_line = f"Muitos {company or 'negócios como o seu'} sofrem com {pain}."
+            message = _strip_dashes(f"{intro} {pain_line}".strip())
+        else:
+            pain_line = f"Muitos {company or 'negócios como o seu'} sofrem com {pain}."
+            offer_line = f"Consigo ajudar com {offer}."
+            close = f"Site: {site} {cta}" if site and "exemplo.com" not in site else cta
+            message = _strip_dashes(f"{intro} {pain_line} {offer_line} {close}".strip())
 
     if len(message) > 450:
         message = message[:447].rsplit(" ", 1)[0] + "..."

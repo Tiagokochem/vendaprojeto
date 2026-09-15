@@ -25,6 +25,9 @@ INTENT_CADENCE: dict[str, CadenceStep] = {
     "objection": CadenceStep("objection_72h", 72),
     "schedule": CadenceStep("meeting_24h", 24),
     "interest": CadenceStep("n1", 24),
+    "who_are_you": CadenceStep("n1", 48),
+    "whats_this": CadenceStep("n1", 72),
+    "not_now": CadenceStep("n3", 168),
 }
 
 

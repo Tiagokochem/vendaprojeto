@@ -16,13 +16,34 @@ class SkillHit:
     reason: str | None = None
 
 
-# Ordem importa: STOP > humano > agenda > preço > objeção
+# Ordem: stop > wrong_number > human > who_are_you > whats_this >
+# not_now > schedule > price > objection > interest
 _STOP = re.compile(
     r"\b(stop|parar|sair|cancelar|remover|descadastrar|opt[\s-]?out|não quero|nao quero)\b",
     re.I,
 )
+_WRONG_NUMBER = re.compile(
+    r"(número errado|numero errado|pessoa errada|não sou eu|nao sou eu|"
+    r"enganou|errou o número|errou o numero|não é daqui|nao e daqui)",
+    re.I,
+)
 _HUMAN = re.compile(
     r"(humano|atendente|pessoa real|falar com|ligação|ligar|gerente|responsável|responsavel)",
+    re.I,
+)
+_WHO = re.compile(
+    r"(quem é você|quem e voce|quem fala|de onde|que empresa|qual empresa|"
+    r"você é robô|voce e robo|é bot|e bot|é automático|e automatico)",
+    re.I,
+)
+_WHATS_THIS = re.compile(
+    r"(o que é isso|o que e isso|por que está me mandando|porque esta me mandando|"
+    r"como pegou meu número|como pegou meu numero|de onde tirou)",
+    re.I,
+)
+_NOT_NOW = re.compile(
+    r"(agora não|agora nao|não agora|nao agora|depois|mais tarde|"
+    r"essa semana não|essa semana nao|mês que vem|mes que vem)",
     re.I,
 )
 _SCHEDULE = re.compile(
@@ -34,7 +55,7 @@ _PRICE = re.compile(
     re.I,
 )
 _OBJECTION = re.compile(
-    r"(já tenho|ja tenho|depois|não preciso|nao preciso|sem interesse|agora não|agora nao|muito caro)",
+    r"(já tenho|ja tenho|não preciso|nao preciso|sem interesse|muito caro)",
     re.I,
 )
 _INTEREST = re.compile(
@@ -49,8 +70,16 @@ def detect_intent(text: str | None) -> str | None:
         return None
     if _STOP.search(raw):
         return "stop"
+    if _WRONG_NUMBER.search(raw):
+        return "wrong_number"
     if _HUMAN.search(raw):
         return "human"
+    if _WHO.search(raw):
+        return "who_are_you"
+    if _WHATS_THIS.search(raw):
+        return "whats_this"
+    if _NOT_NOW.search(raw):
+        return "not_now"
     if _SCHEDULE.search(raw):
         return "schedule"
     if _PRICE.search(raw):
@@ -88,6 +117,16 @@ def run_skill(
             reason="skill_stop",
         )
 
+    if intent == "wrong_number":
+        return SkillHit(
+            intent="wrong_number",
+            reply="Desculpa o engano. Não mando mais mensagem neste número.",
+            escalate=False,
+            stage="lost",
+            tags=["intent:wrong_number", "dnc"],
+            reason="skill_wrong_number",
+        )
+
     if intent == "human":
         return SkillHit(
             intent="human",
@@ -98,9 +137,62 @@ def run_skill(
             reason="skill_human",
         )
 
+    if intent == "who_are_you":
+        return SkillHit(
+            intent="who_are_you",
+            reply=(
+                f"{greet}sou {who}. Falo por aqui pra entender se faz sentido "
+                "uma conversa rápida sobre o WhatsApp do seu negócio. Prefere que eu continue ou pare?"
+            ),
+            escalate=False,
+            stage="qualifying",
+            tags=["intent:who_are_you"],
+            followup_hours=48,
+            reason="skill_who_are_you",
+        )
+
+    if intent == "whats_this":
+        return SkillHit(
+            intent="whats_this",
+            reply=(
+                f"{greet}é uma mensagem comercial curta. Se não fizer sentido, "
+                "é só dizer parar que eu encerro."
+            ),
+            escalate=False,
+            stage="qualifying",
+            tags=["intent:whats_this"],
+            followup_hours=72,
+            reason="skill_whats_this",
+        )
+
+    if intent == "not_now":
+        return SkillHit(
+            intent="not_now",
+            reply=(
+                f"{greet}sem problema. Posso te chamar em outro momento, "
+                "ou prefere que eu pare de vez?"
+            ),
+            escalate=False,
+            stage="qualifying",
+            tags=["intent:not_now"],
+            followup_hours=168,
+            reason="skill_not_now",
+        )
+
     if intent == "schedule":
+        from hermes_core.patterns import get_pack
+
+        pack_key = get_pack(niche).key
+        slot_hint = {
+            "clinica": "consulta",
+            "imobiliaria": "visita",
+            "pet": "horário (consulta ou banho)",
+            "food": "horário de conversa rápida",
+            "educacao": "conversa sobre a turma",
+            "advocacia": "consulta",
+        }.get(pack_key, "horário")
         slots = (
-            f"Pode ser amanhã de manhã ou no fim da tarde. Prefere qual? "
+            f"Pode ser amanhã de manhã ou no fim da tarde para alinhar {slot_hint}. Prefere qual? "
             f"{('Link: ' + book) if book else 'Me diga um horário que funciona.'}"
         )
         return SkillHit(
@@ -120,8 +212,8 @@ def run_skill(
         return SkillHit(
             intent="price",
             reply=(
-                f"{greet}o valor depende do escopo ({niche_hint}). "
-                "Me diga em uma frase o que você precisa e o prazo, "
+                f"{greet}o valor depende do que vocês precisam em torno de {niche_hint}. "
+                "Me diga em uma frase o cenário atual e o prazo; "
                 f"assim {who} te devolve uma faixa sem compromisso."
             ),
             escalate=True,
@@ -138,9 +230,9 @@ def run_skill(
             "food": "cardápio digital costuma ser o primeiro passo barato",
             "servico": "agenda online resolve boa parte da fila de orçamento",
             "imobiliaria": "triagem automática libera o corretor pras visitas quentes",
-            "educacao": "FAQ de matrícula reduz 50% das mensagens repetidas",
+            "educacao": "FAQ de matrícula reduz boa parte das mensagens repetidas",
             "advocacia": "triagem ética filtra o que não é da área",
-            "pet": "lembrete de vacina/banho já reduz no-show",
+            "pet": "lembrete de vacina e banho já reduz no-show",
         }.get(niche or "", "dá pra começar por um pedaço pequeno")
         return SkillHit(
             intent="objection",

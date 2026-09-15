@@ -63,6 +63,62 @@ def test_skill_stop():
     assert s and s.intent == "stop" and s.stage == "lost"
 
 
+def test_skill_wrong_number():
+    assert detect_intent("número errado") == "wrong_number"
+    s = run_skill(text="pessoa errada", display_name="Ana")
+    assert s and s.intent == "wrong_number" and "dnc" in s.tags
+
+
+def test_skill_who_and_not_now():
+    assert detect_intent("quem é você?") == "who_are_you"
+    assert detect_intent("agora não, obrigado") == "not_now"
+    s = run_skill(text="agora não", display_name="Ana", lead_name="João")
+    assert s and s.intent == "not_now" and s.followup_hours == 168
+
+
+def test_outbound_uses_pack_opening():
+    r = generate_outbound(
+        display_name="Tiago",
+        portfolio_url="https://example.com",
+        company="Clínica Sorriso",
+        niche="clinica",
+    )
+    assert r.niche == "clinica"
+    assert "Tiago" in r.message
+    assert "site, automação e IA" not in r.message.lower()
+
+
+def test_service_packs_depth():
+    packs = list_packs()
+    assert len(packs) >= 8
+    for p in packs:
+        assert len(p.pains) >= 5, p.key
+        assert len(p.ctas) >= 3, p.key
+        assert len(p.faqs) >= 5, p.key
+    geral = get_pack("geral")
+    blob = " ".join(f.answer for f in geral.faqs).lower()
+    assert "free" not in blob
+    assert "pro com" not in blob and "plano pro" not in blob
+    assert "r$ 10" not in blob
+    assert detect_niche("Imobiliária Centro", None) == "imobiliaria"
+    assert detect_niche("Advocacia Silva", None) == "advocacia"
+    assert detect_niche("Pet Shop Rex", None) == "pet"
+    assert detect_niche("Clínica Veterinária Amiga", None) == "pet"
+    assert detect_niche("Estética Bella", None) == "servico"
+    assert detect_niche("Clínica Sorriso Odontologia", None) == "clinica"
+
+
+def test_openings_min_three():
+    from hermes_core.openings import default_opening, openings_for
+
+    for key in ("clinica", "loja", "food", "servico", "geral"):
+        opts = openings_for(key)
+        assert len(opts) >= 3, key
+    d = default_opening("clinica", "Ana")
+    assert "?" in d
+    assert "Ana" in d
+
+
 def test_outbound_override():
     r = generate_outbound(
         display_name="Tiago",
@@ -129,16 +185,6 @@ def test_inbound_blocks_injection():
     )
     assert r.reason == "prompt_injection"
     assert r.escalate is True
-
-
-def test_service_packs():
-    packs = list_packs()
-    assert len(packs) >= 8
-    assert get_pack("imobiliaria").faqs
-    assert detect_niche("Imobiliária Centro", None) == "imobiliaria"
-    assert detect_niche("Advocacia Silva", None) == "advocacia"
-    assert detect_niche("Pet Shop Rex", None) == "pet"
-    assert detect_niche("Clínica Veterinária Amiga", None) == "pet"
 
 
 def test_warmup_phases():

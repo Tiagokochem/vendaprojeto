@@ -2,15 +2,19 @@
 
 O Vendaprojeto **não** tem flow builder. “Fluxo” = **playbook do nicho** + **skills** + **outcomes do operador** + **follow-ups**.
 
-## Skills do Hermes (automáticas)
+## Skills (automáticas)
 
 | Intent | Trigger | Efeito |
 |--------|---------|--------|
 | stop | PARAR / não quero | DNC + adeus + cancela follow-ups |
+| wrong_number | número errado / pessoa errada | DNC + adeus curto |
 | human | atendente / humano | Escalação + pausa bot |
+| who_are_you | quem é você / é bot | Se apresenta + pergunta se continua |
+| whats_this | o que é isso / de onde tirou | Explica + oferece parar |
+| not_now | agora não / depois | Soft close + FU 7 dias |
 | price | preço / valor | Qualifying + escala + FU 24h |
 | schedule | marcar / horário | Stage meeting + FU 24h |
-| objection | caro / depois | Qualifying + FU 72h |
+| objection | já tenho / sem interesse / caro | Qualifying + FU 72h |
 | interest | interessado / faz sentido | Qualifying + FU 24h |
 
 ## Outcomes do operador (1 toque)
