@@ -59,11 +59,11 @@ Demo local (só se não mudar o `.env`): `demo@vendaprojeto.local` / `demo1234`.
 
 ## Preço e pagamento
 
-| Incluso no Pro (R$ 10/mês) | Por conta do cliente |
-|----------------------------|----------------------|
-| Painel, Hermes, hospedagem do app | Número WhatsApp (chip) e risco de bloqueio |
-| Playbook, fila, aprendizado | Evolution API / infra de conexão |
-| | Apify / OpenAI se usar |
+| Incluso no Pro (R$ 10/mês) | Você traz |
+|----------------------------|-----------|
+| Painel, Hermes, hospedagem do app | Seu número WhatsApp |
+| Playbook, fila, aprendizado | Sua Evolution (ou API que já usa) |
+| | Apify / OpenAI se quiser |
 
 Pagamento via **Mercado Pago** (Checkout Pro). Doação voluntária na landing (`/#doar`).
 

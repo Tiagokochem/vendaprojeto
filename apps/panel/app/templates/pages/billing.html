@@ -11,8 +11,8 @@
 
  <h1 class="mt-6 text-2xl font-semibold tracking-tight">Plano e preço</h1>
  <p class="text-sm text-stone-500 mt-1">
- Pro a <strong>R$ 10/mês</strong> via Mercado Pago. Cobre o SaaS/servidor.
- WhatsApp, Evolution e risco do chip são por sua conta.
+ Pro a <strong>R$ 10/mês</strong> via Mercado Pago: painel e servidor inclusos.
+ Você conecta o seu WhatsApp.
  </p>
 
  {% set flash = request.query_params.get('flash') %}
@@ -94,9 +94,9 @@
  {% endfor %}
  </ul>
  </div>
- <div class="rounded-xl border border-amber-200 bg-amber-50/60 p-4">
- <p class="font-medium text-amber-950">Por sua conta</p>
- <ul class="mt-2 space-y-1 text-amber-950/80">
+ <div class="rounded-xl border border-stone-200 bg-stone-50 p-4">
+ <p class="font-medium text-stone-900">Você traz</p>
+ <ul class="mt-2 space-y-1 text-stone-700">
  {% for item in pricing_client_owns %}
  <li>· {{ item }}</li>
  {% endfor %}

@@ -1,33 +1,33 @@
-{# Aviso de risco WA não oficial + progresso de aquecimento #}
+{# Ritmo / aquecimento do número #}
 {% if wa_risk or warmup %}
 {% set wu = warmup if warmup is defined else none %}
-<div class="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-950 space-y-1">
-  <p class="font-medium">Risco do WhatsApp (Evolution)</p>
-  <p class="text-amber-900/90">
-    A conexão não é a API oficial da Meta. Muitos envios frios, pouco intervalo ou chip novo
-    podem limitar ou banir o número. O produto limita o ritmo de propósito.
+<div class="rounded-lg border border-stone-200 bg-stone-50 px-3 py-2 text-sm text-stone-800 space-y-1">
+  <p class="font-medium">Ritmo do número</p>
+  <p class="text-stone-600">
+    Começamos devagar e sobimos o limite com o tempo. Assim o número fica estável
+    e o bot não dispara demais no começo.
   </p>
   {% if wu %}
   <p>
-    Chip:
-    <strong>{{ wu.chip_age_label or 'não informado (tratado como novo)' }}</strong>
+    Idade do número:
+    <strong>{{ wu.chip_age_label or 'não informada (tratamos como novo)' }}</strong>
     {% if not wu.chip_age_set %}
-    · <a class="underline" href="/app/whatsapp">informar idade</a>
+    · <a class="underline" href="/app/whatsapp">informar</a>
     {% endif %}
   </p>
   {% if wu.started and wu.active %}
   <p>
-    Aquecimento no produto: <strong>dia {{ wu.day }}</strong>
-    {% if wu.effective_day %}(efetivo {{ wu.effective_day }}/{{ wu.days_total }} com crédito do chip){% endif %}
+    Aquecimento: <strong>dia {{ wu.day }}</strong>
+    {% if wu.effective_day %}(efetivo {{ wu.effective_day }}/{{ wu.days_total }}){% endif %}
     {% if wu.label %} · {{ wu.label }}{% endif %}
     · até <strong>{{ wu.cap }}</strong> envios/dia
     · intervalo ≥ <strong>{{ wu.min_interval }} min</strong>
   </p>
   {% elif wu.done %}
-  <p>Aquecimento concluído para este chip. Teto do plano: {{ wu.plan_cap or wu.cap }} envios/dia.</p>
+  <p>Aquecimento concluído. Teto do plano: {{ wu.plan_cap or wu.cap }} envios/dia.</p>
   {% else %}
   <p>
-    Ponto de partida previsto: ~{{ wu.start_cap or wu.cap }}/dia.
+    Ponto de partida: ~{{ wu.start_cap or wu.cap }}/dia.
     Depois do teste do bot, o limite sobe aos poucos até {{ wu.plan_cap or 'o plano' }}.
   </p>
   {% endif %}
