@@ -88,6 +88,21 @@ async def contacts_capture(request: Request):
         """,
         (tid,),
     )
+    if not result.ok:
+        return request.app.state.templates.TemplateResponse(
+            "pages/contacts.html",
+            {
+                "request": request,
+                "user": user,
+                "user_email": user.email,
+                "tenant_name": user.tenant_name,
+                "contacts": contacts,
+                "error": result.detail or "Captura falhou.",
+                "flash": None,
+                "apify_configured": capture.apify_configured(),
+            },
+            status_code=400,
+        )
     flash = (
         f"Captura ({result.source}): {result.imported} importados, {result.skipped} ignorados."
     )

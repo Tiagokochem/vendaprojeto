@@ -1,4 +1,4 @@
-"""Follow-ups agendados (receitas N+1 / N+3 / meeting / snooze) — sem canvas."""
+"""Follow-ups agendados (receitas N+1 / N+3 / meeting / snooze), sem canvas."""
 from __future__ import annotations
 
 from hermes_core.cadence import jitter_hours
@@ -10,14 +10,14 @@ from app.services import evolution, policy, tenant as tenant_svc
 DEFAULTS = {
     "n1": (
         "Oi! Passando pra saber se faz sentido conversarmos essa semana "
-        "— posso te mandar um exemplo rápido?"
+        ", posso te mandar um exemplo rápido?"
     ),
     "n3": (
         "Última mensagem por aqui 🙂 Se preferir não receber mais, responda PARAR. "
         "Se quiser seguir, diga o melhor horário."
     ),
     "meeting_24h": (
-        "Oi! Confirmando nosso papo — ainda está bom pra você? "
+        "Oi! Confirmando nosso papo, ainda está bom pra você? "
         "Se precisar remarcar, me diga um horário."
     ),
     "price_24h": (

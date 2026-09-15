@@ -1,6 +1,6 @@
-"""Padrões pré-prontos (packs de serviço) — sem canvas.
+"""Padrões pré-prontos (packs de serviço), sem canvas.
 
-Cada pack = nicho + oferta + FAQs seed + ângulos extras + ritmo sugerido.
+Cada pack = nicho + oferta + FAQs do pack + ângulos extras + ritmo sugerido.
 """
 from __future__ import annotations
 
@@ -43,9 +43,9 @@ SERVICE_PACKS: dict[str, ServicePack] = {
             "Quantas faltas vocês têm por semana?",
             "A triagem do WhatsApp está com alguém dedicado?",
         ),
-        daily_sends=20,
+        daily_sends=10,
         faqs=(
-            FaqSeed("Vocês atendem convênio?", "Atendemos particular e alguns convênios — me diga o seu que confirmo."),
+            FaqSeed("Vocês atendem convênio?", "Atendemos particular e alguns convênios, me diga o seu que confirmo."),
             FaqSeed("Qual o horário?", "Funcionamos em horário comercial; posso te passar as opções desta semana."),
             FaqSeed("Onde fica?", "Te mando o endereço e o link do Maps assim que confirmarmos o horário."),
         ),
@@ -67,11 +67,11 @@ SERVICE_PACKS: dict[str, ServicePack] = {
             "O gargalo é catálogo ou checkout?",
             "Quanto tempo por dia vai em pergunta de preço no WhatsApp?",
         ),
-        daily_sends=25,
+        daily_sends=12,
         faqs=(
-            FaqSeed("Tem frete?", "Sim — calculamos pelo CEP. Me passa o seu que te digo as opções."),
+            FaqSeed("Tem frete?", "Sim, calculamos pelo CEP. Me passa o seu que te digo as opções."),
             FaqSeed("Aceita Pix?", "Aceitamos Pix e cartão. Posso te mandar o link de pagamento."),
-            FaqSeed("Tem troca?", "Sim, política de troca clara no site — te resumo em uma frase se quiser."),
+            FaqSeed("Tem troca?", "Sim, política de troca clara no site, te resumo em uma frase se quiser."),
         ),
         detect=("loja", "moda", "roupa", "móvel", "movel", "ótica", "otica", "floricultura", "varejo", "calçado", "calcado"),
     ),
@@ -92,9 +92,9 @@ SERVICE_PACKS: dict[str, ServicePack] = {
         ),
         daily_sends=15,
         faqs=(
-            FaqSeed("Faz entrega?", "Sim, na região — me diga o bairro que confirmo tempo e taxa."),
+            FaqSeed("Faz entrega?", "Sim, na região, me diga o bairro que confirmo tempo e taxa."),
             FaqSeed("Tem cardápio?", "Te mando o cardápio atualizado com preços de hoje."),
-            FaqSeed("Aceita reserva?", "Para salão sim — me diga data, horário e quantas pessoas."),
+            FaqSeed("Aceita reserva?", "Para salão sim, me diga data, horário e quantas pessoas."),
         ),
         detect=("restaurante", "pizzaria", "hamburguer", "lanchonete", "lanch", "bar ", "café", "cafe", "food", "padaria", "confeit"),
     ),
@@ -113,11 +113,11 @@ SERVICE_PACKS: dict[str, ServicePack] = {
             "Agenda hoje é manual ou já têm reserva online?",
             "Quantos orçamentos vocês mandam por dia no zap?",
         ),
-        daily_sends=20,
+        daily_sends=10,
         faqs=(
-            FaqSeed("Quanto custa?", "Depende do serviço — me diga o que precisa que te passo uma faixa sem compromisso."),
+            FaqSeed("Quanto custa?", "Depende do serviço, me diga o que precisa que te passo uma faixa sem compromisso."),
             FaqSeed("Tem horário amanhã?", "Me diga o período (manhã/tarde) que confirmo a próxima vaga."),
-            FaqSeed("Atende minha região?", "Sim na maioria dos bairros — me fala a cidade/bairro."),
+            FaqSeed("Atende minha região?", "Sim na maioria dos bairros, me fala a cidade/bairro."),
         ),
         detect=("salão", "salao", "barbearia", "academia", "pilates", "oficina", "mecânic", "mecanic", "beleza", "serviço", "servico"),
     ),
@@ -135,10 +135,10 @@ SERVICE_PACKS: dict[str, ServicePack] = {
             "Hoje a triagem de leads é manual no WhatsApp?",
             "Quantas visitas ficam sem confirmação por semana?",
         ),
-        daily_sends=30,
+        daily_sends=15,
         faqs=(
-            FaqSeed("Aceita FGTS?", "Depende do imóvel e do banco — me diga o código do anúncio que verifico."),
-            FaqSeed("Posso visitar?", "Sim — me diga o dia e período preferidos que confirmo com o corretor."),
+            FaqSeed("Aceita FGTS?", "Depende do imóvel e do banco, me diga o código do anúncio que verifico."),
+            FaqSeed("Posso visitar?", "Sim, me diga o dia e período preferidos que confirmo com o corretor."),
             FaqSeed("Está disponível?", "Vou checar o status atual e já te retorno."),
         ),
         detect=("imóbil", "imobil", "corretor", "imóveis", "imoveis", "apartamento", "condo"),
@@ -157,11 +157,11 @@ SERVICE_PACKS: dict[str, ServicePack] = {
             "As dúvidas de matrícula ainda são 100% manuais?",
             "Vocês retoma quem pediu preço e não fechou?",
         ),
-        daily_sends=25,
+        daily_sends=12,
         faqs=(
-            FaqSeed("Qual o valor?", "Temos planos — me diga o curso/turma que te passo a faixa e condições."),
-            FaqSeed("Tem vaga?", "Sim nesta turma — posso te reservar uma pré-vaga enquanto alinhamos."),
-            FaqSeed("É presencial?", "Temos modalidades — me diga sua cidade que confirmo."),
+            FaqSeed("Qual o valor?", "Temos planos, me diga o curso/turma que te passo a faixa e condições."),
+            FaqSeed("Tem vaga?", "Sim nesta turma, posso te reservar uma pré-vaga enquanto alinhamos."),
+            FaqSeed("É presencial?", "Temos modalidades, me diga sua cidade que confirmo."),
         ),
         detect=("escola", "curso", "faculdade", "colégio", "colegio", "idioma", "educa", "treinamento"),
     ),
@@ -182,7 +182,7 @@ SERVICE_PACKS: dict[str, ServicePack] = {
         daily_sends=15,
         faqs=(
             FaqSeed("Atendem minha área?", "Me diga o tema em uma frase (trabalhista, família, etc.) que confirmo."),
-            FaqSeed("Quanto custa a consulta?", "A consulta tem valor fixo — um humano te confirma e agenda."),
+            FaqSeed("Quanto custa a consulta?", "A consulta tem valor fixo, um humano te confirma e agenda."),
             FaqSeed("É urgente?", "Se for prazo processual, diga a data limite que priorizamos o retorno humano."),
         ),
         detect=("advoc", "jurídic", "juridic", "escritório de advoc", "oab"),
@@ -201,11 +201,11 @@ SERVICE_PACKS: dict[str, ServicePack] = {
             "Lembretes de vacina/consulta ainda são manuais?",
             "O zap da clínica está virando fila o dia todo?",
         ),
-        daily_sends=20,
+        daily_sends=10,
         faqs=(
-            FaqSeed("Abre sábado?", "Sim em horário reduzido — te passo as opções desta semana."),
-            FaqSeed("Tem banho e tosa?", "Sim — me diga porte e data preferida."),
-            FaqSeed("Aceita convênio pet?", "Alguns planos sim — me diga o nome do plano."),
+            FaqSeed("Abre sábado?", "Sim em horário reduzido, te passo as opções desta semana."),
+            FaqSeed("Tem banho e tosa?", "Sim, me diga porte e data preferida."),
+            FaqSeed("Aceita convênio pet?", "Alguns planos sim, me diga o nome do plano."),
         ),
         detect=("pet", "vet", "veterin", "banho e tosa", "petshop"),
     ),
@@ -225,9 +225,9 @@ SERVICE_PACKS: dict[str, ServicePack] = {
         ),
         daily_sends=15,
         faqs=(
-            FaqSeed("Como funciona?", "A gente configura o bot no seu WhatsApp com o seu jeito de atender — sem montar fluxo."),
+            FaqSeed("Como funciona?", "A gente configura o bot no seu WhatsApp com o seu jeito de atender, sem montar fluxo."),
             FaqSeed("Preciso de site?", "Ajuda, mas o foco é organizar o WhatsApp e a fila de leads."),
-            FaqSeed("Quanto custa?", "Temos plano Free pra testar e Pro com mais envios — te explico no trial."),
+            FaqSeed("Quanto custa?", "Temos plano Free pra testar e Pro com mais envios, te explico no trial."),
         ),
         detect=(),
     ),

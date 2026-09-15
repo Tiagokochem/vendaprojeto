@@ -157,6 +157,13 @@ def assert_send_allowed(tenant_id: str, phone: str | None = None) -> PolicyDecis
         return PolicyDecision(False, "daily_cap")
 
     interval = int(settings_row.get("interval_minutes") or 20)
+    try:
+        from app.services import warmup as warmup_svc
+
+        wu = warmup_svc.state_for_tenant(tenant_id)
+        interval = max(interval, int(wu.get("min_interval") or interval))
+    except Exception:  # noqa: BLE001
+        pass
     if not interval_ok(tenant_id, interval):
         return PolicyDecision(False, "interval")
 
@@ -203,7 +210,7 @@ def assert_reply_allowed(
         if stage in ("won", "lost"):
             return PolicyDecision(False, "terminal_stage")
 
-    # Quiet hours NÃO bloqueia inbound — só outbound (assert_send_allowed)
+    # Quiet hours NÃO bloqueia inbound, só outbound (assert_send_allowed)
 
     return PolicyDecision(True, "smoke" if smoke_mode else None)
 
@@ -231,7 +238,7 @@ def dominant_status(tenant_id: str) -> dict:
     if not bot_on:
         return {
             "key": "paused",
-            "label": "Prospecção pausada — zero novos envios",
+            "label": "Prospecção pausada, zero novos envios",
             "tone": "warn",
             "cta": "/app/bot/toggle",
             "cta_label": "Retomar",
@@ -249,7 +256,15 @@ def dominant_status(tenant_id: str) -> dict:
             soft = None
         label = f"Cota do dia esgotada (0/{cap})"
         if soft == "trial_expired":
-            label = f"Trial encerrado — Free 0/{cap}. Faça upgrade."
+            label = f"Trial encerrado, Free 0/{cap}. Faça upgrade."
+        try:
+            from app.services import warmup as warmup_svc
+
+            wu = warmup_svc.state_for_tenant(tenant_id)
+            if wu.get("active"):
+                label = f"Limite do aquecimento (0/{cap}). Dia {wu['day']}/{wu['days_total']}."
+        except Exception:  # noqa: BLE001
+            pass
         return {
             "key": "quota",
             "label": label,
@@ -272,7 +287,7 @@ def dominant_status(tenant_id: str) -> dict:
     if not is_business_day():
         return {
             "key": "holiday",
-            "label": "Dia não útil — envios pausados (feriado/fim de semana)",
+            "label": "Dia não útil, envios pausados (feriado/fim de semana)",
             "tone": "warn",
             "cta": "/app",
             "cta_label": None,
@@ -282,7 +297,7 @@ def dominant_status(tenant_id: str) -> dict:
     if dry:
         return {
             "key": "dry_run",
-            "label": "Modo ensaio — envios não saem de verdade",
+            "label": "Modo ensaio, envios não saem de verdade",
             "tone": "warn",
             "cta": "/app/whatsapp",
             "cta_label": "WhatsApp",
@@ -306,7 +321,7 @@ def dominant_status(tenant_id: str) -> dict:
         if soft == "trial_expired":
             return {
                 "key": "trial_expired",
-                "label": "Trial Pro encerrado — limites Free ativos",
+                "label": "Trial Pro encerrado, limites Free ativos",
                 "tone": "warn",
                 "cta": "/app/billing",
                 "cta_label": "Ver planos",
@@ -324,6 +339,27 @@ def dominant_status(tenant_id: str) -> dict:
                 "cta_label": "Plano",
                 "remaining": remaining,
                 "cap": cap,
+            }
+    except Exception:  # noqa: BLE001
+        pass
+    try:
+        from app.services import warmup as warmup_svc
+
+        wu = warmup_svc.state_for_tenant(tenant_id)
+        if wu.get("active"):
+            chip = wu.get("chip_age_label") or "chip"
+            return {
+                "key": "warmup",
+                "label": (
+                    f"Aquecendo ({chip}) · dia {wu.get('day') or '?'} · "
+                    f"{remaining}/{cap} envios · ≥{wu['min_interval']}min"
+                ),
+                "tone": "warn",
+                "cta": "/app/whatsapp",
+                "cta_label": "Idade do chip",
+                "remaining": remaining,
+                "cap": cap,
+                "bot_enabled": True,
             }
     except Exception:  # noqa: BLE001
         pass

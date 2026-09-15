@@ -1,4 +1,4 @@
-"""Bootstrap: aplica SQL e seed do tenant demo."""
+"""Bootstrap: schema + conta demo mínima (sem dados fake de conversa)."""
 from __future__ import annotations
 
 import logging
@@ -11,6 +11,7 @@ from app.config import settings
 from app.security import hash_password
 
 log = logging.getLogger("vendaprojeto.bootstrap")
+
 
 def _sql_dir() -> Path:
     candidates = [Path("/app/sql")]
@@ -36,7 +37,6 @@ def _apply_sql_file(path: Path) -> None:
 
 def ensure_schema() -> None:
     _apply_sql_file(_sql_dir() / "001_init.sql")
-    # Colunas novas em bases já existentes (001 antigo)
     alters = [
         "ALTER TABLE agente.tenant_settings ADD COLUMN IF NOT EXISTS offer_summary TEXT",
         "ALTER TABLE agente.tenant_settings ADD COLUMN IF NOT EXISTS evo_status TEXT NOT NULL DEFAULT 'disconnected'",
@@ -49,6 +49,8 @@ def ensure_schema() -> None:
         "ALTER TABLE agente.outbound_queue ADD COLUMN IF NOT EXISTS claimed_at TIMESTAMPTZ",
         "ALTER TABLE agente.tenant_settings ADD COLUMN IF NOT EXISTS quiet_start INT NOT NULL DEFAULT 9",
         "ALTER TABLE agente.tenant_settings ADD COLUMN IF NOT EXISTS quiet_end INT NOT NULL DEFAULT 18",
+        "ALTER TABLE agente.tenant_settings ADD COLUMN IF NOT EXISTS warmup_started_at TIMESTAMPTZ",
+        "ALTER TABLE agente.tenant_settings ADD COLUMN IF NOT EXISTS chip_age TEXT",
         "ALTER TABLE agente.tenants ADD COLUMN IF NOT EXISTS trial_ends_at TIMESTAMPTZ",
         "ALTER TABLE agente.knowledge_entries ADD COLUMN IF NOT EXISTS embedding JSONB",
         "ALTER TABLE agente.knowledge_entries ADD COLUMN IF NOT EXISTS embedded_at TIMESTAMPTZ",
@@ -74,7 +76,6 @@ def ensure_schema() -> None:
         )
         """,
         "CREATE INDEX IF NOT EXISTS idx_follow_ups_due ON agente.follow_ups (tenant_id, status, due_at)",
-        # status sending na fila (bases antigas)
         """
         DO $$ BEGIN
           ALTER TABLE agente.outbound_queue DROP CONSTRAINT IF EXISTS outbound_queue_status_check;
@@ -84,17 +85,16 @@ def ensure_schema() -> None:
         END $$;
         """,
     ]
-    with db.get_conn() as conn:
-        with conn.cursor() as cur:
-            for stmt in alters:
-                try:
-                    cur.execute(stmt)
-                except Exception as exc:  # noqa: BLE001
-                    log.debug("alter skip: %s (%s)", stmt, exc)
+    for stmt in alters:
+        try:
+            db.execute(stmt)
+        except Exception:  # noqa: BLE001
+            log.exception("Alter falhou: %s", stmt[:80])
+    purge_synthetic_ops()
 
 
 def _ensure_config(tenant_id, kind: str) -> None:
-    row = db.fetch_one(
+    exists = db.fetch_one(
         """
         SELECT id FROM agente.agent_config_versions
         WHERE tenant_id = %s AND kind = %s AND is_published
@@ -102,18 +102,75 @@ def _ensure_config(tenant_id, kind: str) -> None:
         """,
         (str(tenant_id), kind),
     )
-    if row:
+    if exists:
         return
     db.execute(
         """
-        INSERT INTO agente.agent_config_versions (tenant_id, kind, version, content, is_published)
+        INSERT INTO agente.agent_config_versions
+          (tenant_id, kind, version, content, is_published)
         VALUES (%s, %s, 1, %s, TRUE)
         """,
         (str(tenant_id), kind, default_for(kind)),
     )
 
 
+def purge_synthetic_ops() -> None:
+    """Remove contatos/mensagens/fila gerados por seed ou smoke sintético."""
+    # Telefones históricos de seed/smoke (nunca dados reais de cliente)
+    synthetic_phones = (
+        "5543999887766",
+        "5543988776655",
+        "5543977665544",
+        "5543966554433",
+        "5543999000111",
+        "5543999000222",
+        "5543999111222",
+        "5543999555666",
+        "5543999555777",
+        "5543999555888",
+        "5543999100001",
+        "5543999100002",
+        "5543999100003",
+        "5543999100004",
+        "5543999100005",
+        "5543999100006",
+        "5543999100007",
+        "5543999100008",
+    )
+    try:
+        phones = db.fetch_all(
+            """
+            SELECT DISTINCT tenant_id::text AS tid, phone_normalized AS phone
+            FROM agente.imported_contacts
+            WHERE source = 'seed'
+            UNION
+            SELECT DISTINCT tenant_id::text AS tid, phone
+            FROM agente.lead_profiles
+            WHERE phone = ANY(%s)
+            """,
+            (list(synthetic_phones),),
+        )
+        for row in phones:
+            tid, phone = row["tid"], row["phone"]
+            for stmt in (
+                "DELETE FROM agente.messages WHERE tenant_id = %s AND phone = %s",
+                "DELETE FROM agente.escalations WHERE tenant_id = %s AND phone = %s",
+                "DELETE FROM agente.follow_ups WHERE tenant_id = %s AND phone = %s",
+                "DELETE FROM agente.outbound_queue WHERE tenant_id = %s AND phone_normalized = %s",
+                "DELETE FROM agente.lead_profiles WHERE tenant_id = %s AND phone = %s",
+                "DELETE FROM agente.imported_contacts WHERE tenant_id = %s AND phone_normalized = %s",
+            ):
+                db.execute(stmt, (tid, phone))
+        db.execute("DELETE FROM agente.imported_contacts WHERE source = 'seed'")
+        db.execute("DELETE FROM agente.knowledge_entries WHERE source = 'seed'")
+        if phones:
+            log.info("Purgou %s thread(s) sintéticas (seed/smoke)", len(phones))
+    except Exception:  # noqa: BLE001
+        log.exception("purge_synthetic_ops falhou")
+
+
 def seed_demo() -> None:
+    """Conta demo para login. Sem leads/conversas inventadas. Sem fake WA open."""
     email = settings.demo_email.strip().lower()
     existing = db.fetch_one(
         "SELECT id FROM agente.users WHERE lower(email) = lower(%s)",
@@ -131,20 +188,7 @@ def seed_demo() -> None:
         if membership:
             for kind in ("outbound", "inbound", "playbook"):
                 _ensure_config(membership["tenant_id"], kind)
-            # Demo operacional completo (wizard + smoke)
-            db.execute(
-                """
-                UPDATE agente.tenant_settings
-                SET wizard_done = TRUE, smoke_ok = TRUE,
-                    evo_status = COALESCE(NULLIF(evo_status, 'disconnected'), 'open'),
-                    evo_instance = COALESCE(evo_instance, 'tenant_demo'),
-                    updated_at = NOW()
-                WHERE tenant_id = %s
-                """,
-                (str(membership["tenant_id"]),),
-            )
-        log.info("Demo user já existia — configs garantidos")
-        _seed_sample_ops(membership["tenant_id"] if membership else None)
+        log.info("Demo user ja existia")
         return
 
     tenant = db.execute_returning(
@@ -176,130 +220,18 @@ def seed_demo() -> None:
         """
         INSERT INTO agente.tenant_settings (
           tenant_id, niches, cities, daily_limit, display_name,
-          portfolio_url, offer_summary, evo_instance, wizard_done, smoke_ok
+          portfolio_url, offer_summary, evo_instance, wizard_done, smoke_ok, evo_status
         ) VALUES (
-          %s, %s, %s, 5, 'Tiago Kochem',
-          'https://tiagokochemsite.vercel.app/',
-          'Sites, automação e IA para negócios locais',
-          'tenant_demo', TRUE, TRUE
+          %s, %s, %s, 5, 'Operador',
+          NULL,
+          'Sites, automacao e IA para negocios locais',
+          %s, FALSE, FALSE, 'disconnected'
         )
         ON CONFLICT (tenant_id) DO NOTHING
         """,
-        (str(tenant_id), ["clinica", "loja", "food"], ["Cascavel", "Toledo"]),
+        (str(tenant_id), ["clinica"], ["Cascavel"], f"tenant_{tenant_id}"),
     )
     for kind in ("outbound", "inbound", "playbook"):
         _ensure_config(tenant_id, kind)
 
-    _seed_sample_ops(tenant_id)
-    log.info("Seed demo criado: %s / tenant demo", email)
-
-
-def _seed_sample_ops(tenant_id) -> None:
-    if tenant_id is None:
-        return
-    tid = str(tenant_id)
-    count = db.fetch_one(
-        "SELECT count(*)::int AS n FROM agente.imported_contacts WHERE tenant_id = %s",
-        (tid,),
-    )
-    if count and count["n"] > 0:
-        return
-
-    contacts = [
-        ("5543999887766", "Clínica Sorriso", "Ana Paula", "clinica"),
-        ("5543988776655", "Ótica Visão Clara", "Carlos", "loja"),
-        ("5543977665544", "Pizzaria Bella", "Marina", "food"),
-        ("5543966554433", "Barbearia Dom", "Pedro", "servico"),
-    ]
-    for phone, company, name, niche in contacts:
-        contact = db.execute_returning(
-            """
-            INSERT INTO agente.imported_contacts (
-              tenant_id, phone, phone_normalized, name, company, niche, segment, status, source
-            ) VALUES (%s, %s, %s, %s, %s, %s, 'freela', 'validated', 'seed')
-            RETURNING id
-            """,
-            (tid, phone, phone, name, company, niche),
-        )
-        db.execute(
-            """
-            INSERT INTO agente.lead_profiles (
-              tenant_id, phone, name, company, niche, segment, stage, last_message_at
-            ) VALUES (%s, %s, %s, %s, %s, 'freela', 'sent', NOW())
-            ON CONFLICT (tenant_id, phone) DO NOTHING
-            """,
-            (tid, phone, name, company, niche),
-        )
-        msg = (
-            f"Oi! Sou Tiago Kochem. Trabalho com site, automação e IA. "
-            f"Muitos negócios como {company} sofrem com atendimento manual no WhatsApp. "
-            f"Consigo ajudar com automação sob medida. "
-            f"Site: https://tiagokochemsite.vercel.app/ Isso encaixa no que vocês precisam agora?"
-        )
-        status = "sent" if phone.endswith("7766") or phone.endswith("6655") else "pending"
-        db.execute(
-            """
-            INSERT INTO agente.outbound_queue (
-              tenant_id, contact_id, phone_normalized, niche, segment,
-              message_text, scheduled_at, status, sent_at
-            ) VALUES (
-              %s, %s, %s, %s, 'freela', %s,
-              NOW() - INTERVAL '1 hour', %s,
-              CASE WHEN %s = 'sent' THEN NOW() - INTERVAL '50 minutes' ELSE NULL END
-            )
-            """,
-            (tid, contact["id"], phone, niche, msg, status, status),
-        )
-
-    # Conversas de exemplo
-    phone = "5543999887766"
-    db.execute(
-        """
-        INSERT INTO agente.messages (tenant_id, phone, role, content, segment) VALUES
-        (%s, %s, 'assistant', %s, 'freela'),
-        (%s, %s, 'user', 'Oi Tiago, temos bastante falta de paciente. Como funciona?', 'freela'),
-        (%s, %s, 'assistant', 'Faço lembrete e confirmação automática no WhatsApp. Quer que eu te mostre um fluxo simples?', 'freela')
-        """,
-        (
-            tid,
-            phone,
-            "Oi! Sou Tiago Kochem...",
-            tid,
-            phone,
-            tid,
-            phone,
-        ),
-    )
-    db.execute(
-        """
-        UPDATE agente.lead_profiles
-        SET stage = 'replied', last_message_at = NOW()
-        WHERE tenant_id = %s AND phone = %s
-        """,
-        (tid, phone),
-    )
-    db.execute(
-        """
-        INSERT INTO agente.knowledge_entries (tenant_id, segment, question, answer, tags, source)
-        VALUES
-        (%s, 'freela', 'Quanto custa?', 'Depende do escopo. Sem inventar preço: o time retorna com proposta.', '{preco}', 'seed'),
-        (%s, 'freela', 'Vocês fazem agendamento?', 'Sim: lembrete, confirmação e triagem no WhatsApp.', '{agenda}', 'seed')
-        """,
-        (tid, tid),
-    )
-    db.execute(
-        """
-        INSERT INTO agente.escalations (tenant_id, phone, reason, user_message, status)
-        VALUES (%s, %s, 'human_requested', 'Quero falar com alguém', 'open')
-        """,
-        (tid, "5543988776655"),
-    )
-    db.execute(
-        """
-        INSERT INTO agente.decision_log (tenant_id, phone, channel, action, reason, stage, niche)
-        VALUES
-        (%s, %s, 'outbound', 'sent', 'ok', 'sent', 'clinica'),
-        (%s, %s, 'inbound', 'reply', 'default', 'replied', 'clinica')
-        """,
-        (tid, phone, tid, phone),
-    )
+    log.info("Seed demo criado (so conta): %s", email)

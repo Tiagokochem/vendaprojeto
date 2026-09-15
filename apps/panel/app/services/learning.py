@@ -546,3 +546,72 @@ def reject(tenant_id: str, candidate_id: int) -> bool:
         (candidate_id, tenant_id),
     )
     return bool(row)
+
+
+def create_manual(
+    tenant_id: str,
+    *,
+    question: str,
+    answer: str,
+    confidence: str = "high",
+) -> int | None:
+    """Cria candidato FAQ manual (ainda precisa aprovar → KB)."""
+    from hermes_core.safety import looks_like_injection, sanitize_user_text
+
+    q = sanitize_user_text(question, max_chars=300)
+    a = sanitize_user_text(answer, max_chars=800)
+    if not q or not a or looks_like_injection(q) or looks_like_injection(a):
+        return None
+    if len(q) < 8 or len(a) < 12:
+        return None
+    conf = confidence if confidence in ("high", "medium", "low") else "high"
+    return _insert_candidate(
+        tenant_id,
+        Candidate(
+            phone=None,
+            segment=None,
+            candidate_type="faq",
+            question=q,
+            suggested_answer=a,
+            confidence=conf,
+            source="manual",
+            extracted={"manual": True},
+        ),
+    )
+
+
+def update_candidate(
+    tenant_id: str,
+    candidate_id: int,
+    *,
+    question: str,
+    answer: str,
+) -> bool:
+    from hermes_core.safety import looks_like_injection, sanitize_user_text
+
+    q = sanitize_user_text(question, max_chars=300)
+    a = sanitize_user_text(answer, max_chars=800)
+    if not q or not a or looks_like_injection(q) or looks_like_injection(a):
+        return False
+    row = db.fetch_one(
+        """
+        UPDATE agente.learning_candidates
+        SET question = %s, suggested_answer = %s
+        WHERE id = %s AND tenant_id = %s AND status = 'pending'
+        RETURNING id
+        """,
+        (q, a, candidate_id, tenant_id),
+    )
+    return bool(row)
+
+
+def delete_candidate(tenant_id: str, candidate_id: int) -> bool:
+    row = db.fetch_one(
+        """
+        DELETE FROM agente.learning_candidates
+        WHERE id = %s AND tenant_id = %s
+        RETURNING id
+        """,
+        (candidate_id, tenant_id),
+    )
+    return bool(row)

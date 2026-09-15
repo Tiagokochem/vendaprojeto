@@ -46,11 +46,11 @@ async def lifespan(_app: FastAPI):
         seed_demo()
         log.info("Bootstrap OK")
     except Exception:
-        log.exception("Bootstrap falhou — verifique Postgres")
+        log.exception("Bootstrap falhou, verifique Postgres")
     yield
 
 
-app = FastAPI(title="Vendaprojeto", version="0.5.0", lifespan=lifespan)
+app = FastAPI(title="Vendaprojeto", version="0.6.0", lifespan=lifespan)
 
 app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
 templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
@@ -67,7 +67,7 @@ async def security_headers(request: Request, call_next):
     response.headers.setdefault("X-Frame-Options", "DENY")
     response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
     response.headers.setdefault("Permissions-Policy", "camera=(), microphone=(), geolocation=()")
-    # CSP basica (S32) — CDN Tailwind/Alpine/HTMX/fonts
+    # CSP basica (S32), CDN Tailwind/Alpine/HTMX/fonts
     response.headers.setdefault(
         "Content-Security-Policy",
         "default-src 'self'; "

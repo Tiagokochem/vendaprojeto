@@ -1,4 +1,4 @@
-# Segurança — Vendaprojeto
+# Segurança,  Vendaprojeto
 
 ## Prompt injection (S12)
 

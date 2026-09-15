@@ -1,4 +1,4 @@
-# Sprints — Vendaprojeto
+# Sprints,  Vendaprojeto
 
 Objetivo: Hermes evolui com **memória + perfil + KB aprovada**.  
 **Padrão:** playbook + meta + skills + outcomes. **Sem flow builder.**  
@@ -10,11 +10,11 @@ conversa → extrai candidato → humano aprova → knowledge_entries → próxi
 
 hermes_core **0.13.0** · panel **0.5.0**
 
-## Quadro (S15–S34 = +20)
+## Quadro (S15-S34 = +20)
 
 | Sprint | Tema | Status | Entrega |
 |--------|------|--------|---------|
-| S0–S14 | Fundação → packs + landing + safety | feito | ver histórico |
+| S0-S14 | Fundação → packs + landing + safety | feito | ver histórico |
 | **S15** | Ranking FAQ / KB hits | **feito** | auditoria + faq_ranking |
 | **S16** | CSRF session token | **parcial** | ensure_token + helper |
 | **S17** | Soft upgrade (interesse Pro) | feito | /app/billing |

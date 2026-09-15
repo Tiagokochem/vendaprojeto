@@ -76,7 +76,7 @@ def sync_status(tenant_id: str) -> dict:
         return {"ok": False, "status": "disconnected", "detail": "no_instance"}
 
     if not configured():
-        # Mantém status local (simulate-open etc.)
+        # Mantém status local se Evolution não responder
         return {
             "ok": True,
             "status": row.get("evo_status") or "disconnected",

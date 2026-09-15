@@ -1,4 +1,4 @@
-# Crons — S8 confiança operacional
+# Crons,  S8 confiança operacional
 
 ```bash
 SECRET="${PANEL_SECRET:-change-me-to-a-long-random-string}"
@@ -13,7 +13,7 @@ HDR=(-H "X-Panel-Secret: $SECRET")
 | 08:30 | Combustível da fila | `curl -s -X POST "$BASE/api/jobs/fuel-queue" "${HDR[@]}"` |
 | */15 | Recover stuck | `curl -s -X POST "$BASE/api/jobs/recover-stuck" "${HDR[@]}"` |
 | 09:05 | Captura contínua | `curl -s -X POST "$BASE/api/jobs/capture-continuous" "${HDR[@]}"` |
-| 09:10–18:00 */20 | Outbound (+ recover embutido) | `curl -s -X POST "$BASE/api/jobs/process-outbound?limit_per_tenant=1" "${HDR[@]}"` |
+| 09:10-18:00 */20 | Outbound (+ recover embutido) | `curl -s -X POST "$BASE/api/jobs/process-outbound?limit_per_tenant=1" "${HDR[@]}"` |
 | */20 | Follow-ups | `curl -s -X POST "$BASE/api/jobs/process-followups" "${HDR[@]}"` |
 | */30 | Sync WhatsApp | `curl -s -X POST "$BASE/api/jobs/sync-whatsapp" "${HDR[@]}"` |
 | 22:00 | Extract learning | `curl -s -X POST "$BASE/api/jobs/extract-learning" "${HDR[@]}"` |

@@ -1,0 +1,36 @@
+{# Aviso de risco WA não oficial + progresso de aquecimento #}
+{% if wa_risk or warmup %}
+{% set wu = warmup if warmup is defined else none %}
+<div class="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-950 space-y-1">
+  <p class="font-medium">Risco do WhatsApp (Evolution)</p>
+  <p class="text-amber-900/90">
+    A conexão não é a API oficial da Meta. Muitos envios frios, pouco intervalo ou chip novo
+    podem limitar ou banir o número. O produto limita o ritmo de propósito.
+  </p>
+  {% if wu %}
+  <p>
+    Chip:
+    <strong>{{ wu.chip_age_label or 'não informado (tratado como novo)' }}</strong>
+    {% if not wu.chip_age_set %}
+    · <a class="underline" href="/app/whatsapp">informar idade</a>
+    {% endif %}
+  </p>
+  {% if wu.started and wu.active %}
+  <p>
+    Aquecimento no produto: <strong>dia {{ wu.day }}</strong>
+    {% if wu.effective_day %}(efetivo {{ wu.effective_day }}/{{ wu.days_total }} com crédito do chip){% endif %}
+    {% if wu.label %} · {{ wu.label }}{% endif %}
+    · até <strong>{{ wu.cap }}</strong> envios/dia
+    · intervalo ≥ <strong>{{ wu.min_interval }} min</strong>
+  </p>
+  {% elif wu.done %}
+  <p>Aquecimento concluído para este chip. Teto do plano: {{ wu.plan_cap or wu.cap }} envios/dia.</p>
+  {% else %}
+  <p>
+    Ponto de partida previsto: ~{{ wu.start_cap or wu.cap }}/dia.
+    Depois do teste do bot, o limite sobe aos poucos até {{ wu.plan_cap or 'o plano' }}.
+  </p>
+  {% endif %}
+  {% endif %}
+</div>
+{% endif %}

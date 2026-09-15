@@ -1,72 +1,72 @@
 {% extends "base.html" %}
 {% block title %}Fila · Vendaprojeto{% endblock %}
 {% block body %}
-<div class="min-h-screen flex">
-  {% include "partials/nav.html" %}
-  <main class="flex-1 p-8">
-    <h1 class="text-2xl font-semibold tracking-tight">Fila outbound</h1>
-    <div class="mt-4 flex items-center justify-between gap-3">
-      <p class="text-sm text-stone-500">
-        Envios programados · {{ remaining_today }}/{{ daily_cap }} restantes hoje
-      </p>
-      <form method="post" action="/app/fila/processar">
-        <button class="rounded-lg border border-stone-200 bg-white px-3 py-1.5 text-sm hover:bg-stone-50">
-          Processar 1 due
-        </button>
-      </form>
-    </div>
+<div class="app-shell">
+ {% include "partials/nav.html" %}
+ <main class="app-main">
+ <h1 class="text-2xl font-semibold tracking-tight">Fila outbound</h1>
+ <div class="mt-4 flex items-center justify-between gap-3">
+ <p class="text-sm text-stone-500">
+ Envios programados · {{ remaining_today }}/{{ daily_cap }} restantes hoje
+ </p>
+ <form method="post" action="/app/fila/processar">
+ <button class="rounded-lg border border-stone-200 bg-white px-3 py-1.5 text-sm hover:bg-stone-50">
+ Processar 1 due
+ </button>
+ </form>
+ </div>
 
-    <div class="mt-6 overflow-x-auto rounded-xl border border-stone-200 bg-white">
-      <table class="min-w-full text-sm">
-        <thead class="bg-stone-50 text-left text-xs uppercase tracking-wide text-stone-500">
-          <tr>
-            <th class="px-4 py-3">Quando</th>
-            <th class="px-4 py-3">Contato</th>
-            <th class="px-4 py-3">Nicho</th>
-            <th class="px-4 py-3">Status</th>
-            <th class="px-4 py-3">Mensagem</th>
-            <th class="px-4 py-3"></th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for item in items %}
-          <tr class="border-t border-stone-100 align-top">
-            <td class="px-4 py-3 whitespace-nowrap text-stone-500">{{ item.scheduled_at }}</td>
-            <td class="px-4 py-3">
-              <p class="font-medium">{{ item.company or item.contact_name or item.phone_normalized }}</p>
-              <p class="text-xs text-stone-400">{{ item.phone_normalized }}</p>
-            </td>
-            <td class="px-4 py-3">{{ item.niche or '—' }}</td>
-            <td class="px-4 py-3">
-              <span class="inline-block rounded-full px-2 py-0.5 text-xs
-                {% if item.status == 'pending' %}bg-amber-50 text-amber-800
-                {% elif item.status in ['sent','dry_run'] %}bg-teal-50 text-teal-800
-                {% elif item.status == 'failed' %}bg-red-50 text-red-700
-                {% else %}bg-stone-100 text-stone-600{% endif %}">{{ item.status }}</span>
-            </td>
-            <td class="px-4 py-3 max-w-md"><p class="line-clamp-3 text-stone-600">{{ item.message_text }}</p></td>
-            <td class="px-4 py-3 whitespace-nowrap">
-              {% if item.status == 'pending' %}
-              <form method="post" action="/app/fila/{{ item.id }}/dry-run" class="inline">
-                <button class="text-teal-700 hover:underline text-xs">Processar</button>
-              </form>
-              <form method="post" action="/app/fila/{{ item.id }}/cancel" class="inline ml-2">
-                <button class="text-stone-500 hover:underline text-xs">Cancelar</button>
-              </form>
-              {% elif item.status == 'failed' %}
-              <form method="post" action="/app/fila/{{ item.id }}/retry" class="inline">
-                <button class="text-red-700 hover:underline text-xs">Retentar</button>
-              </form>
-              {% if item.error_message %}<p class="text-[10px] text-red-500 mt-1">{{ item.error_message }}</p>{% endif %}
-              {% endif %}
-            </td>
-          </tr>
-          {% else %}
-          <tr><td colspan="6" class="px-4 py-8 text-center text-stone-500">Fila vazia.</td></tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-  </main>
+ <div class="mt-6 overflow-x-auto rounded-xl border border-stone-200 bg-white">
+ <table class="min-w-full text-sm">
+ <thead class="bg-stone-50 text-left text-xs uppercase tracking-wide text-stone-500">
+ <tr>
+ <th class="px-4 py-3">Quando</th>
+ <th class="px-4 py-3">Contato</th>
+ <th class="px-4 py-3">Nicho</th>
+ <th class="px-4 py-3">Status</th>
+ <th class="px-4 py-3">Mensagem</th>
+ <th class="px-4 py-3"></th>
+ </tr>
+ </thead>
+ <tbody>
+ {% for item in items %}
+ <tr class="border-t border-stone-100 align-top">
+ <td class="px-4 py-3 whitespace-nowrap text-stone-500">{{ item.scheduled_at }}</td>
+ <td class="px-4 py-3">
+ <p class="font-medium">{{ item.company or item.contact_name or item.phone_normalized }}</p>
+ <p class="text-xs text-stone-400">{{ item.phone_normalized }}</p>
+ </td>
+ <td class="px-4 py-3">{{ item.niche or '-' }}</td>
+ <td class="px-4 py-3">
+ <span class="inline-block rounded-full px-2 py-0.5 text-xs
+ {% if item.status == 'pending' %}bg-amber-50 text-amber-800
+ {% elif item.status in ['sent','dry_run'] %}bg-teal-50 text-teal-800
+ {% elif item.status == 'failed' %}bg-red-50 text-red-700
+ {% else %}bg-stone-100 text-stone-600{% endif %}">{{ item.status }}</span>
+ </td>
+ <td class="px-4 py-3 max-w-md"><p class="line-clamp-3 text-stone-600">{{ item.message_text }}</p></td>
+ <td class="px-4 py-3 whitespace-nowrap">
+ {% if item.status == 'pending' %}
+ <form method="post" action="/app/fila/{{ item.id }}/dry-run" class="inline">
+ <button class="text-teal-700 hover:underline text-xs">Processar</button>
+ </form>
+ <form method="post" action="/app/fila/{{ item.id }}/cancel" class="inline ml-2">
+ <button class="text-stone-500 hover:underline text-xs">Cancelar</button>
+ </form>
+ {% elif item.status == 'failed' %}
+ <form method="post" action="/app/fila/{{ item.id }}/retry" class="inline">
+ <button class="text-red-700 hover:underline text-xs">Retentar</button>
+ </form>
+ {% if item.error_message %}<p class="text-[10px] text-red-500 mt-1">{{ item.error_message }}</p>{% endif %}
+ {% endif %}
+ </td>
+ </tr>
+ {% else %}
+ <tr><td colspan="6" class="px-4 py-8 text-center text-stone-500">Fila vazia.</td></tr>
+ {% endfor %}
+ </tbody>
+ </table>
+ </div>
+ </main>
 </div>
 {% endblock %}

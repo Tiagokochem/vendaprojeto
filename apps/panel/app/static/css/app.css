@@ -1,3 +1,66 @@
 /* Vendaprojeto panel */
-body { font-family: "Segoe UI", ui-sans-serif, system-ui, sans-serif; }
-code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+body {
+  font-family: "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+}
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+[x-cloak] {
+  display: none !important;
+}
+
+/* Shell do painel: coluna no mobile, linha no desktop */
+.app-shell {
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+}
+@media (min-width: 1024px) {
+  .app-shell {
+    flex-direction: row;
+  }
+}
+
+.app-main {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  padding: 1rem;
+}
+@media (min-width: 640px) {
+  .app-main {
+    padding: 1.5rem;
+  }
+}
+@media (min-width: 1024px) {
+  .app-main {
+    padding: 2rem;
+  }
+}
+
+/* Cards de métrica alinhados (label longa não empurra o número) */
+.stat-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 6.25rem;
+  border-radius: 0.75rem;
+  border: 1px solid #e7e5e4;
+  background: #fff;
+  padding: 1rem;
+}
+.stat-card__label {
+  font-size: 0.7rem;
+  line-height: 1.25;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #78716c;
+  min-height: 2.25rem;
+}
+.stat-card__value {
+  margin-top: 0.5rem;
+  font-size: 1.5rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}

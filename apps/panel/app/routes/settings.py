@@ -80,7 +80,7 @@ async def settings_save(
             offer_summary or None,
             niche_list,
             city_list,
-            max(1, min(daily_limit, 50)),
+            max(1, min(daily_limit, 40)),
             max(5, min(interval_minutes, 120)),
             bot_enabled == "on",
         ),

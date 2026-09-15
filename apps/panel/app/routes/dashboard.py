@@ -8,7 +8,7 @@ from app.deps import get_session_user, redirect_login
 from app.config import settings
 from app.services.tenant import daily_remaining
 from app.services.insights import angle_scorecard, decision_stats, roi_today
-from app.services import hermes_ops, onboarding, policy
+from app.services import hermes_ops, onboarding, policy, warmup as warmup_svc
 
 router = APIRouter(tags=["dashboard"])
 
@@ -116,6 +116,8 @@ async def app_home(request: Request):
                 "smoke": onboarding.smoke_ok(tid),
                 "outbound": policy.outbound_ready(tid).allowed,
             },
+            "wa_risk": True,
+            "warmup": warmup_svc.state_for_tenant(tid),
         },
     )
 

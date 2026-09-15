@@ -1,4 +1,4 @@
-"""Detecção de nicho e dores padrão — espelha ServicePacks."""
+"""Detecção de nicho e dores padrão, espelha ServicePacks."""
 from __future__ import annotations
 
 import random

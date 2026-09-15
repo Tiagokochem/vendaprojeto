@@ -355,14 +355,19 @@ def process_due(tenant_id: str, limit: int = 1) -> list[dict]:
 
 
 def mark_smoke_ok(tenant_id: str) -> None:
+    from app.services import warmup as warmup_svc
+
     db.execute(
         """
         UPDATE agente.tenant_settings
-        SET smoke_ok = TRUE, updated_at = NOW()
+        SET smoke_ok = TRUE,
+            warmup_started_at = COALESCE(warmup_started_at, NOW()),
+            updated_at = NOW()
         WHERE tenant_id = %s AND NOT smoke_ok
         """,
         (tenant_id,),
     )
+    warmup_svc.ensure_started(tenant_id)
 
 
 def handle_inbound(tenant_id: str, phone: str, text: str) -> dict:

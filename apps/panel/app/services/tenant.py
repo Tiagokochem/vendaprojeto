@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from app import db
-# plan_daily_cap unused here — cap via billing.effective_daily_cap
+# plan_daily_cap unused here, cap via billing.effective_daily_cap
 
 
 def get_settings(tenant_id: str) -> dict:
@@ -44,7 +44,7 @@ def sent_today(tenant_id: str) -> int:
 
 
 def daily_remaining(tenant_id: str) -> tuple[int, int]:
-    """Retorna (remaining, cap) — respeita trial Pro ativo."""
+    """Retorna (remaining, cap), respeita trial Pro ativo."""
     from app.services import billing as billing_svc
 
     settings_row = get_settings(tenant_id)

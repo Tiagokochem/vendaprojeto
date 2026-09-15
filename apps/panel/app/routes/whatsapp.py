@@ -1,11 +1,12 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 
 from app import db
 from app.deps import get_session_user, redirect_login
-from app.services import evolution, hermes_ops, onboarding
+from app.services import evolution, onboarding, warmup as warmup_svc
+from hermes_core.warmup import list_chip_ages
 
 router = APIRouter(tags=["whatsapp"])
 
@@ -35,8 +36,22 @@ async def whatsapp_page(request: Request):
             "sync_detail": sync.get("detail"),
             "step": onboarding.onboarding_step(tid),
             "status": onboarding.status_bar(tid),
+            "wa_risk": True,
+            "warmup": warmup_svc.state_for_tenant(tid),
+            "chip_ages": list_chip_ages(),
+            "flash": request.query_params.get("flash"),
         },
     )
+
+
+@router.post("/app/whatsapp/chip-age")
+async def whatsapp_chip_age(request: Request, chip_age: str = Form(...)):
+    user = get_session_user(request)
+    if user is None:
+        return redirect_login()
+    ok = warmup_svc.set_chip_age(str(user.tenant_id), chip_age)
+    flash = "chip_ok" if ok else "chip_erro"
+    return RedirectResponse(f"/app/whatsapp?flash={flash}", status_code=303)
 
 
 @router.post("/app/whatsapp/connect")
@@ -81,44 +96,6 @@ async def whatsapp_sync(request: Request):
     if user is None:
         return redirect_login()
     evolution.sync_status(str(user.tenant_id))
-    return RedirectResponse("/app/whatsapp", status_code=303)
-
-
-@router.post("/app/whatsapp/simulate-open")
-async def whatsapp_simulate_open(request: Request):
-    user = get_session_user(request)
-    if user is None:
-        return redirect_login()
-    db.execute(
-        """
-        UPDATE agente.tenant_settings
-        SET evo_status = 'open', updated_at = NOW()
-        WHERE tenant_id = %s
-        """,
-        (str(user.tenant_id),),
-    )
-    return RedirectResponse("/app/whatsapp", status_code=303)
-
-
-@router.post("/app/whatsapp/simulate-smoke")
-async def whatsapp_simulate_smoke(request: Request):
-    """Dev: marca smoke_ok + seed sem webhook real."""
-    user = get_session_user(request)
-    if user is None:
-        return redirect_login()
-    if evolution.configured():
-        return RedirectResponse("/app/whatsapp", status_code=303)
-    tid = str(user.tenant_id)
-    db.execute(
-        """
-        UPDATE agente.tenant_settings
-        SET evo_status = 'open', smoke_ok = TRUE, updated_at = NOW()
-        WHERE tenant_id = %s
-        """,
-        (tid,),
-    )
-    onboarding.ensure_seed_after_smoke(tid)
-    hermes_ops.mark_smoke_ok(tid)
     return RedirectResponse("/app/whatsapp", status_code=303)
 
 

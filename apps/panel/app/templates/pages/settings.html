@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 {% block title %}Config · Vendaprojeto{% endblock %}
 {% block body %}
-<div class="min-h-screen flex">
+<div class="app-shell">
   {% include "partials/nav.html" %}
-  <main class="flex-1 p-8 max-w-3xl">
+  <main class="app-main max-w-3xl">
     <h1 class="text-2xl font-semibold tracking-tight">Plano de negócio</h1>
     <p class="text-sm text-stone-500 mt-1">Identidade, nichos e limites do tenant</p>
 
@@ -45,7 +45,7 @@
       <div class="grid grid-cols-2 gap-3">
         <label class="block text-sm">
           <span class="text-stone-600">Limite / dia</span>
-          <input type="number" name="daily_limit" min="1" max="50"
+          <input type="number" name="daily_limit" min="1" max="40"
             value="{{ settings.daily_limit if settings else 5 }}"
             class="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2" />
         </label>

@@ -20,8 +20,8 @@ Ações: Pedir humano · Adiar 2h/amanhã · Follow-up 24h · Devolver ao bot ·
 
 ## Receitas (jobs)
 
-`POST /api/jobs/process-followups` — dispara `follow_ups` due (N+1, N+3, meeting_24h, snooze resume).  
-`POST /api/jobs/fuel-queue` — se pending &lt; 8, enfileira contatos `new` (combustível).
+`POST /api/jobs/process-followups`,  dispara `follow_ups` due (N+1, N+3, meeting_24h, snooze resume).  
+`POST /api/jobs/fuel-queue`,  se pending &lt; 8, enfileira contatos `new` (combustível).
 
 ## Cadência por estágio (S10)
 

@@ -1,4 +1,4 @@
-"""Gates puros (sem DB) — quiet hours, opt-out, stages."""
+"""Gates puros (sem DB), quiet hours, opt-out, stages."""
 from __future__ import annotations
 
 from datetime import datetime, time

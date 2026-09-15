@@ -1,4 +1,4 @@
-"""Captura de contatos por tenant (Apify real ou seed local)."""
+"""Captura de contatos por tenant (somente Apify; sem seed)."""
 from __future__ import annotations
 
 import json
@@ -37,7 +37,7 @@ class CaptureResult:
     ok: bool
     imported: int = 0
     skipped: int = 0
-    source: str = "seed"
+    source: str = "apify"
     detail: str | None = None
     run_id: int | None = None
 
@@ -58,7 +58,6 @@ def _fetch_apify_items(limit: int) -> list[dict] | None:
     if not apify_configured():
         return None
     actor = settings.apify_actor_id.strip() or "compass/crawler-google-places"
-    # Lista runs recentes
     url = f"https://api.apify.com/v2/acts/{actor}/runs?limit=1&status=SUCCEEDED"
     req = urllib.request.Request(url, headers=_apify_headers(), method="GET")
     try:
@@ -86,37 +85,6 @@ def _fetch_apify_items(limit: int) -> list[dict] | None:
         return None
 
 
-def _seed_items(niches: list[str], cities: list[str], limit: int) -> list[dict]:
-    """Contatos sintéticos para dev (só celular BR válido em formato)."""
-    city = (cities[0] if cities else "Cascavel").title()
-    niche = niches[0] if niches else "geral"
-    terms = NICHE_TERMS.get(niche, NICHE_TERMS["geral"])
-    samples = [
-        ("Clínica Horizonte", "5543999100001", "clinica"),
-        ("Ótica Luz Clara", "5543999100002", "loja"),
-        ("Pizzaria Dom João", "5543999100003", "food"),
-        ("Barbearia Navalha", "5543999100004", "servico"),
-        ("Studio Beleza Ana", "5543999100005", "servico"),
-        ("Pet Shop Amigo", "5543999100006", "loja"),
-        ("Consultório Sorriso", "5543999100007", "clinica"),
-        ("Padaria Manhã", "5543999100008", "food"),
-    ]
-    random.shuffle(samples)
-    out = []
-    for company, phone, n in samples[:limit]:
-        out.append(
-            {
-                "title": company,
-                "phone": phone,
-                "city": city,
-                "categoryName": terms[0],
-                "website": None,
-                "_seed_niche": n,
-            }
-        )
-    return out
-
-
 def _normalize_item(item: dict) -> tuple[str | None, str | None, str | None, str | None]:
     phone_raw = (
         item.get("phone")
@@ -134,9 +102,15 @@ def _normalize_item(item: dict) -> tuple[str | None, str | None, str | None, str
 def capture_for_tenant(tenant_id: str, limit: int | None = None) -> CaptureResult:
     settings_row = tenant_svc.get_settings(tenant_id)
     niches = list(settings_row.get("niches") or []) or ["geral"]
-    cities = list(settings_row.get("cities") or []) or ["Brasil"]
     daily = int(settings_row.get("daily_limit") or 5)
     take = min(limit or daily, 20)
+
+    if not apify_configured():
+        return CaptureResult(
+            ok=False,
+            source="apify",
+            detail="APIFY_TOKEN não configurado. Captura real obrigatória (sem contatos sintéticos).",
+        )
 
     run = db.execute_returning(
         """
@@ -146,18 +120,26 @@ def capture_for_tenant(tenant_id: str, limit: int | None = None) -> CaptureResul
         """,
         (
             tenant_id,
-            settings.apify_actor_id or "seed",
-            f"local-{tenant_id[:8]}-{random.randint(1000,9999)}",
+            settings.apify_actor_id or "compass/crawler-google-places",
+            f"apify-{tenant_id[:8]}-{random.randint(1000,9999)}",
             niches[0] if niches else "geral",
         ),
     )
     run_id = int(run["id"]) if run else None
 
     items = _fetch_apify_items(take)
-    source = "apify"
     if items is None:
-        items = _seed_items(niches, cities, take)
-        source = "seed"
+        if run_id:
+            db.execute(
+                "UPDATE agente.apify_runs SET status = 'failed' WHERE id = %s",
+                (run_id,),
+            )
+        return CaptureResult(
+            ok=False,
+            source="apify",
+            detail="Nenhum dataset Apify disponível. Rode o actor e tente de novo.",
+            run_id=run_id,
+        )
 
     imported = 0
     skipped = 0
@@ -166,7 +148,7 @@ def capture_for_tenant(tenant_id: str, limit: int | None = None) -> CaptureResul
         if not phone or not is_mobile_br(phone):
             skipped += 1
             continue
-        niche = item.get("_seed_niche") or detect_niche(company, name)
+        niche = detect_niche(company, name)
         try:
             db.execute(
                 """
@@ -186,7 +168,7 @@ def capture_for_tenant(tenant_id: str, limit: int | None = None) -> CaptureResul
                     company,
                     website,
                     niche,
-                    source,
+                    "apify",
                     Json(item),
                 ),
             )
@@ -222,7 +204,7 @@ def capture_for_tenant(tenant_id: str, limit: int | None = None) -> CaptureResul
         """,
         (
             tenant_id,
-            source,
+            "apify",
             Json({"imported": imported, "skipped": skipped, "run_id": run_id}),
         ),
     )
@@ -230,6 +212,6 @@ def capture_for_tenant(tenant_id: str, limit: int | None = None) -> CaptureResul
         ok=True,
         imported=imported,
         skipped=skipped,
-        source=source,
+        source="apify",
         run_id=run_id,
     )

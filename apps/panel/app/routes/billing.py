@@ -6,7 +6,8 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from app import db
 from app.deps import get_session_user, redirect_login
 from app.services import billing as billing_svc
-from app.services.limits import PLAN_LIMITS
+from app.services import onboarding, warmup as warmup_svc
+from app.services.limits import PLAN_LIMITS, PRICING_CLIENT_OWNS, PRICING_INCLUDES
 from app.services.tenant import daily_remaining, get_tenant
 
 router = APIRouter(tags=["billing"])
@@ -51,13 +52,18 @@ async def billing_page(request: Request):
             "remaining_today": remaining,
             "daily_cap": cap,
             "trial": trial,
+            "wa_risk": True,
+            "warmup": warmup_svc.state_for_tenant(tid),
+            "status": onboarding.status_bar(tid),
+            "pricing_includes": PRICING_INCLUDES,
+            "pricing_client_owns": PRICING_CLIENT_OWNS,
         },
     )
 
 
 @router.post("/app/billing/quero-pro")
 async def request_upgrade(request: Request):
-    """Interesse em upgrade — registra sem checkout (S11.4 stub)."""
+    """Interesse em upgrade, registra sem checkout (S11.4 stub)."""
     user = get_session_user(request)
     if user is None:
         return redirect_login()

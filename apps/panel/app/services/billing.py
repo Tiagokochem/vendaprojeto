@@ -1,4 +1,4 @@
-"""Billing / trial (S11) — soft-block sem checkout externo ainda."""
+"""Billing / trial (S11), soft-block sem checkout externo ainda."""
 from __future__ import annotations
 
 from datetime import datetime, timezone
@@ -48,8 +48,17 @@ def effective_plan(tenant_id: str) -> str:
 
 
 def effective_daily_cap(tenant_id: str, tenant_daily_limit: int | None) -> int:
+    """Teto do plano, limitado pelo aquecimento do chip quando ativo."""
     plan = effective_plan(tenant_id)
-    return plan_daily_cap(plan, tenant_daily_limit)
+    plan_cap = plan_daily_cap(plan, tenant_daily_limit)
+    try:
+        from app.services import warmup as warmup_svc
+
+        st = warmup_svc.state_for_tenant(tenant_id)
+        return max(1, min(plan_cap, int(st["cap"])))
+    except Exception:  # noqa: BLE001
+        return plan_cap
+
 
 
 def start_trial(tenant_id: str, *, days: int = TRIAL_DAYS) -> dict | None:
@@ -81,7 +90,7 @@ def start_trial(tenant_id: str, *, days: int = TRIAL_DAYS) -> dict | None:
 
 
 def soft_block_reason(tenant_id: str) -> str | None:
-    """Se trial expirou e plano free, avisa (não suspende — só soft UI + cota free)."""
+    """Se trial expirou e plano free, avisa (não suspende, só soft UI + cota free)."""
     from app import db
 
     row = db.fetch_one("SELECT plan, trial_ends_at FROM agente.tenants WHERE id = %s", (tenant_id,))

@@ -132,13 +132,13 @@ def generate_inbound_reply(
 
     if use_llm and configured(openai_api_key) and system_prompt:
         kb_block = "\n".join(f"- {s}" for s in safe_kb) or "(vazia)"
-        profile = f"nome={safe_name or '—'}; resumo={safe_summary or '—'}"
+        profile = f"nome={safe_name or ','}; resumo={safe_summary or ','}"
         system = (
             f"{system_prompt.strip()}\n\n"
             f"{safety_system_rules()}\n\n"
             f"## Perfil do lead\n{profile}\n\n"
             f"## Base de conhecimento\n{kb_block}\n\n"
-            "Responda só a mensagem do lead, em português, 2–5 frases. "
+            "Responda só a mensagem do lead, em português, 2-5 frases. "
             "Se não souber, diga que um humano retoma. "
             "Se o lead pedir humano, comece com EXACTAMENTE: ESCALAR:"
         )

@@ -1,4 +1,4 @@
-"""Privacidade / LGPD — export e DNC (S24, S33)."""
+"""Privacidade / LGPD, export e DNC (S24, S33)."""
 from __future__ import annotations
 
 import csv

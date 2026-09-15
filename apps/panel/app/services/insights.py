@@ -177,7 +177,7 @@ def escalations_enriched(tenant_id: str, limit: int = 50) -> list[dict]:
 
 
 def faq_ranking(tenant_id: str, days: int = 30, limit: int = 15) -> list[dict]:
-    """Lista KB + total de kb_match do período (S15 — ranking simples)."""
+    """Lista KB + total de kb_match do período (S15, ranking simples)."""
     hits_row = db.fetch_one(
         """
         SELECT count(*)::int AS n FROM agente.decision_log

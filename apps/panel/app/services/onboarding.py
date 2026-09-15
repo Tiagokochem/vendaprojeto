@@ -6,7 +6,7 @@ from fastapi.responses import RedirectResponse
 from hermes_core.playbooks import list_angles
 
 from app import db
-from app.services import capture, policy
+from app.services import policy
 
 # Rotas liberadas antes do wizard
 WIZARD_ALLOW_PREFIXES = (
@@ -136,7 +136,8 @@ def seed_pack_kb(tenant_id: str, niche: str) -> int:
 
 
 def ensure_seed_after_smoke(tenant_id: str, min_contacts: int = 5) -> dict | None:
-    """Após smoke: seed mínimo uma vez (flag anti-corrida)."""
+    """Após smoke: só marca flag. Contatos vêm do Apify (sem seed operacional)."""
+    del min_contacts  # API preservada; captura automática removida
     claimed = db.execute_returning(
         """
         UPDATE agente.tenant_settings
@@ -151,14 +152,7 @@ def ensure_seed_after_smoke(tenant_id: str, min_contacts: int = 5) -> dict | Non
     )
     if not claimed:
         return None
-    count = db.fetch_one(
-        "SELECT count(*)::int AS n FROM agente.imported_contacts WHERE tenant_id = %s",
-        (tenant_id,),
-    )
-    if count and count["n"] >= min_contacts:
-        return {"imported": 0, "source": "already_has_contacts"}
-    result = capture.capture_for_tenant(tenant_id, limit=min_contacts)
-    return {"imported": result.imported, "source": result.source}
+    return {"imported": 0, "source": "no_auto_seed"}
 
 
 def status_bar(tenant_id: str) -> dict:

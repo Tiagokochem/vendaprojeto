@@ -140,3 +140,28 @@ def test_service_packs():
     assert detect_niche("Pet Shop Rex", None) == "pet"
     assert detect_niche("Clínica Veterinária Amiga", None) == "pet"
 
+
+def test_warmup_phases():
+    from datetime import date, datetime, timezone
+
+    from hermes_core.warmup import effective_day_index, warmup_cap, warmup_status
+
+    start = datetime(2026, 9, 1, tzinfo=timezone.utc)
+    # chip novo, dia 0
+    assert warmup_cap(0, 15, chip_age="new") == 5
+    # chip veteran no dia 0 efetivo (crédito 10) → plano
+    assert effective_day_index(start, chip_age="veteran", today=date(2026, 9, 1)) == 10
+    assert warmup_cap(10, 15, chip_age="veteran") == 15
+    # chip months: crédito 5 → no dia 0 do produto já em fase ~12
+    assert effective_day_index(start, chip_age="months", today=date(2026, 9, 1)) == 5
+    assert warmup_cap(5, 15, chip_age="months") == 12
+    # weeks sobe com o tempo no produto
+    st = warmup_status(
+        start, plan_cap=15, chip_age="weeks", today=date(2026, 9, 1)
+    )
+    assert st["cap"] == 8 and st["chip_age"] == "weeks"
+    later = warmup_status(
+        start, plan_cap=15, chip_age="new", today=date(2026, 9, 12)
+    )
+    assert later["done"] is True and later["cap"] == 15
+

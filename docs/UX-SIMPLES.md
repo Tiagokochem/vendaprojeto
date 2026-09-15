@@ -1,4 +1,4 @@
-# UX — modo simples (padrão playbook + meta)
+# UX,  modo simples (padrão playbook + meta)
 
 **Promessa:** nicho + WhatsApp + N envios/dia. Sem montar fluxo.
 

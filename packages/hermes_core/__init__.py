@@ -1,4 +1,4 @@
-"""Hermes core — motor multi-tenant do Vendaprojeto."""
+"""Hermes core, motor multi-tenant do Vendaprojeto."""
 from __future__ import annotations
 
 from hermes_core.calendar_br import is_br_holiday, is_business_day
@@ -15,7 +15,7 @@ from hermes_core.playbooks import list_angles, pick_angle, pick_angle_weighted
 from hermes_core.safety import looks_like_injection, sanitize_user_text
 from hermes_core.skills import detect_intent, run_skill
 
-__version__ = "0.13.0"
+__version__ = "0.15.0"
 
 
 def health() -> dict:

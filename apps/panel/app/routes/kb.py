@@ -82,6 +82,34 @@ async def kb_reindex(request: Request):
     return RedirectResponse("/app/kb", status_code=303)
 
 
+@router.post("/app/kb/{entry_id}/salvar")
+async def kb_update(
+    request: Request,
+    entry_id: int,
+    question: str = Form(...),
+    answer: str = Form(...),
+):
+    user = get_session_user(request)
+    if user is None:
+        return redirect_login()
+    from hermes_core.safety import looks_like_injection, sanitize_user_text
+
+    q = sanitize_user_text(question, max_chars=400)
+    a = sanitize_user_text(answer, max_chars=1200)
+    if not q or not a or looks_like_injection(q) or looks_like_injection(a):
+        return RedirectResponse("/app/kb?erro=conteudo_invalido", status_code=303)
+    db.execute(
+        """
+        UPDATE agente.knowledge_entries
+        SET question = %s, answer = %s, embedded_at = NULL, embedding = NULL
+        WHERE id = %s AND tenant_id = %s AND NOT deprecated
+        """,
+        (q, a, entry_id, str(user.tenant_id)),
+    )
+    kb_rag.index_entry(str(user.tenant_id), entry_id)
+    return RedirectResponse("/app/kb", status_code=303)
+
+
 @router.post("/app/kb/{entry_id}/deprecate")
 async def kb_deprecate(request: Request, entry_id: int):
     user = get_session_user(request)
@@ -91,6 +119,21 @@ async def kb_deprecate(request: Request, entry_id: int):
         """
         UPDATE agente.knowledge_entries
         SET deprecated = TRUE
+        WHERE id = %s AND tenant_id = %s
+        """,
+        (entry_id, str(user.tenant_id)),
+    )
+    return RedirectResponse("/app/kb", status_code=303)
+
+
+@router.post("/app/kb/{entry_id}/excluir")
+async def kb_delete(request: Request, entry_id: int):
+    user = get_session_user(request)
+    if user is None:
+        return redirect_login()
+    db.execute(
+        """
+        DELETE FROM agente.knowledge_entries
         WHERE id = %s AND tenant_id = %s
         """,
         (entry_id, str(user.tenant_id)),

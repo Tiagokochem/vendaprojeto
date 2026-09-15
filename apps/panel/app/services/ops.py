@@ -1,4 +1,4 @@
-"""Ops S8 — dead-letter, stuck sending, captura contínua."""
+"""Ops S8, dead-letter, stuck sending, captura contínua."""
 from __future__ import annotations
 
 from app import db

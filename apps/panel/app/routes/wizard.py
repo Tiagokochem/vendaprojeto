@@ -13,6 +13,8 @@ router = APIRouter(tags=["wizard"])
 
 
 def _wizard_ctx(request, user, tid, *, settings_row, niche, error=None, step=1):
+    from app.services import warmup as warmup_svc
+
     return {
         "request": request,
         "user": user,
@@ -26,6 +28,8 @@ def _wizard_ctx(request, user, tid, *, settings_row, niche, error=None, step=1):
         "preview": onboarding.playbook_preview(niche),
         "openings": openings_for(niche),
         "status": onboarding.status_bar(tid),
+        "wa_risk": True,
+        "warmup": warmup_svc.state_for_tenant(tid),
     }
 
 
@@ -138,7 +142,7 @@ async def wizard_submit(
             portfolio_url.strip() or None,
             [niche],
             city_list,
-            max(1, min(int(daily_limit), 30)),
+            max(1, min(int(daily_limit), 15)),
             qs,
             qe,
             max(0, min(int(capture_every_hours), 168)),

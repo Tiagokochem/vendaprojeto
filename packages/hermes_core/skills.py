@@ -1,4 +1,4 @@
-"""Skills reativas — intenções fechadas (não flow builder)."""
+"""Skills reativas, intenções fechadas (não flow builder)."""
 from __future__ import annotations
 
 import re
@@ -81,7 +81,7 @@ def run_skill(
     if intent == "stop":
         return SkillHit(
             intent="stop",
-            reply="Sem problema — parei o contato por aqui. Se mudar de ideia, é só chamar.",
+            reply="Sem problema, parei o contato por aqui. Se mudar de ideia, é só chamar.",
             escalate=False,
             stage="lost",
             tags=["intent:stop", "dnc"],
@@ -105,7 +105,7 @@ def run_skill(
         )
         return SkillHit(
             intent="schedule",
-            reply=f"{greet}ótimo — vamos marcar. {slots}",
+            reply=f"{greet}ótimo, vamos marcar. {slots}",
             escalate=False,
             stage="meeting",
             tags=["intent:schedule"],
@@ -121,7 +121,7 @@ def run_skill(
             intent="price",
             reply=(
                 f"{greet}o valor depende do escopo ({niche_hint}). "
-                "Me diga em uma frase o que você precisa e o prazo — "
+                "Me diga em uma frase o que você precisa e o prazo, "
                 f"assim {who} te devolve uma faixa sem compromisso."
             ),
             escalate=True,
@@ -146,7 +146,7 @@ def run_skill(
             intent="objection",
             reply=(
                 f"{greet}faz sentido. {niche_tip.capitalize()}. "
-                "Se quiser, te mando um exemplo rápido — sem compromisso."
+                "Se quiser, te mando um exemplo rápido, sem compromisso."
             ),
             escalate=False,
             stage="qualifying",

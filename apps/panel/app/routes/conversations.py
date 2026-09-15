@@ -26,6 +26,7 @@ def _needs_you(tid: str) -> list[dict]:
 
 
 def _leads_enriched(tid: str) -> list[dict]:
+    """Só leads com mensagem ou escalação aberta (contatos importados ficam em Contatos)."""
     return db.fetch_all(
         """
         SELECT lp.*,
@@ -38,6 +39,16 @@ def _leads_enriched(tid: str) -> list[dict]:
           ) AS needs_you
         FROM agente.lead_profiles lp
         WHERE lp.tenant_id = %s
+          AND (
+            EXISTS (
+              SELECT 1 FROM agente.messages m
+              WHERE m.tenant_id = lp.tenant_id AND m.phone = lp.phone
+            )
+            OR EXISTS (
+              SELECT 1 FROM agente.escalations e
+              WHERE e.tenant_id = lp.tenant_id AND e.phone = lp.phone AND e.status = 'open'
+            )
+          )
         ORDER BY
           EXISTS (
             SELECT 1 FROM agente.escalations e

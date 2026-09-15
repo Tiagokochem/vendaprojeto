@@ -1,7 +1,6 @@
 """Geração de outbound (template; LLM opcional depois)."""
 from __future__ import annotations
 
-import re
 from dataclasses import dataclass
 
 from hermes_core.playbooks import pick_angle, pick_angle_weighted
@@ -17,7 +16,8 @@ class OutboundResult:
 
 
 def _strip_dashes(text: str) -> str:
-    return re.sub(r"[—–]", "-", text).replace(" - ", ", ")
+    """Nunca usar travessão em mensagens ao lead."""
+    return text.replace("—", ", ").replace("–", "-")
 
 
 def generate_outbound(

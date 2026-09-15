@@ -1,4 +1,4 @@
-"""Playbooks por nicho — ângulos rotativos (Sprint 3)."""
+"""Playbooks por nicho, ângulos rotativos (Sprint 3)."""
 from __future__ import annotations
 
 import random
@@ -58,7 +58,7 @@ def pick_angle_weighted(
         return random.choice(angles)
     weights = []
     for a in angles:
-        # score 0–100 → peso; mínimo 1 para exploração
+        # score 0-100 → peso; mínimo 1 para exploração
         w = max(1.0, float(scores.get(a.label) or scores.get(a.niche) or 10.0))
         weights.append(w)
     return random.choices(angles, weights=weights, k=1)[0]
@@ -70,7 +70,7 @@ def scorecard_rows(tenant_stats: dict) -> list[tuple[str, int | str]]:
     replies = int(tenant_stats.get("inbound_replies") or 0)
     kb = int(tenant_stats.get("kb_hits") or 0)
     skips = int(tenant_stats.get("inbound_skips") or 0)
-    rate = f"{(100 * replies / sends):.0f}%" if sends else "—"
+    rate = f"{(100 * replies / sends):.0f}%" if sends else ","
     return [
         ("Envios (24h)", sends),
         ("Replies inbound", replies),
