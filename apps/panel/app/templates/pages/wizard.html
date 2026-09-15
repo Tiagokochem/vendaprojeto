@@ -3,171 +3,161 @@
 {% block body %}
 <div class="app-shell">
  {% include "partials/nav.html" %}
- <main class="app-main max-w-xl">
+ <main class="app-main wizard-page">
  {% include "partials/status_bar.html" %}
  <div class="mt-3">
  {% include "partials/wa_risk.html" %}
  </div>
 
  {% set step = step or 1 %}
- <ol class="mt-4 flex gap-2 text-[11px] uppercase tracking-wide">
+ <ol class="wizard-steps mt-5">
  {% for n, label in [(1,'Negócio'),(2,'WhatsApp'),(3,'Teste'),(4,'No ar')] %}
- <li class="flex-1 rounded-lg px-2 py-1.5 text-center
- {% if step == n %}bg-teal-700 text-white
- {% elif step > n %}bg-teal-100 text-teal-800
- {% else %}bg-stone-200 text-stone-500{% endif %}">{{ n }}. {{ label }}</li>
+ <li class="{% if step == n %}is-current{% elif step > n %}is-done{% endif %}">
+ <span class="wizard-steps__n">{{ n }}</span>
+ <span class="wizard-steps__label">{{ label }}</span>
+ </li>
  {% endfor %}
  </ol>
 
- <p class="text-xs uppercase tracking-widest text-teal-700 font-semibold mt-6">Passo 1 · Negócio</p>
- <h1 class="mt-2 text-2xl font-semibold tracking-tight">Seu negócio no ar</h1>
- <p class="mt-1 text-sm text-stone-500">
- Sem montar fluxo. Escolha o nicho e o ritmo; o bot já sabe prospectar e responder.
- </p>
+ <header class="wizard-hero mt-6">
+ <p class="wizard-eyebrow">Passo 1 · Negócio</p>
+ <h1>Seu negócio no ar</h1>
+ <p>Sem montar fluxo. Escolha o nicho e o ritmo; o bot já sabe prospectar e responder.</p>
+ </header>
 
  {% if error %}
- <p class="mt-4 rounded-lg bg-red-50 text-red-700 text-sm px-3 py-2">{{ error }}</p>
+ <p class="mt-4 rounded-lg bg-red-50 text-red-700 text-sm px-3 py-2 max-w-3xl">{{ error }}</p>
  {% endif %}
 
- <form method="post" action="/app/comecar" class="mt-8 space-y-6">
- <section class="space-y-3">
- <h2 class="text-sm font-medium text-stone-800">Quem fala no WhatsApp</h2>
- <label class="block text-sm">
- <span class="text-stone-600">Seu nome</span>
+ <form method="post" action="/app/comecar" class="wizard-layout mt-8">
+ <div class="wizard-col wizard-col--form">
+ <section class="wizard-block">
+ <h2>Quem fala no WhatsApp</h2>
+ <div class="wizard-fields">
+ <label>
+ <span>Seu nome</span>
  <input name="display_name" required
- value="{{ settings.display_name if settings else '' }}"
- class="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2" />
+ value="{{ settings.display_name if settings else '' }}" />
  </label>
- <label class="block text-sm">
- <span class="text-stone-600">O que você vende (1 frase)</span>
+ <label>
+ <span>O que você vende (1 frase)</span>
  <textarea name="offer_summary" required rows="2"
- class="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2"
  placeholder="Sites e automação para clínicas locais">{{ settings.offer_summary if settings else '' }}</textarea>
  </label>
- <label class="block text-sm">
- <span class="text-stone-600">Site / portfólio (opcional)</span>
+ <label>
+ <span>Site / portfólio (opcional)</span>
  <input name="portfolio_url" type="url"
  value="{{ settings.portfolio_url if settings else '' }}"
- class="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2"
  placeholder="https://" />
  </label>
+ </div>
  </section>
 
- <section class="space-y-3">
- <h2 class="text-sm font-medium text-stone-800">Para quem prospectar</h2>
- <div class="space-y-2">
+ <section class="wizard-block">
+ <h2>Onde e quanto</h2>
+ <div class="wizard-fields">
+ <label>
+ <span>Cidades (vírgula)</span>
+ <input name="cities" required
+ value="{{ settings.cities|join(', ') if settings and settings.cities else '' }}"
+ placeholder="Cascavel, Toledo" />
+ </label>
+ <div class="wizard-row">
+ <label>
+ <span>Envios / dia</span>
+ <input type="number" name="daily_limit" min="1" max="15"
+ value="{{ settings.daily_limit if settings else 5 }}" />
+ </label>
+ <label>
+ <span>Início (h)</span>
+ <input type="number" name="quiet_start" min="0" max="23" id="quiet-start"
+ value="{{ settings.quiet_start if settings and settings.quiet_start is defined else pack_quiet_start }}" />
+ </label>
+ <label>
+ <span>Fim (h)</span>
+ <input type="number" name="quiet_end" min="1" max="24" id="quiet-end"
+ value="{{ settings.quiet_end if settings and settings.quiet_end is defined else pack_quiet_end }}" />
+ </label>
+ <label>
+ <span>Captura auto (h)</span>
+ <input type="number" name="capture_every_hours" min="0" max="168"
+ value="{{ settings.capture_every_hours if settings and settings.capture_every_hours is defined else 0 }}" />
+ </label>
+ </div>
+ <p class="wizard-hint">Comece com 5. Número novo sobe o limite aos poucos. 0 em captura = só manual.</p>
+ <label>
+ <span>Abertura A/B (opcional)</span>
+ <select id="opening-pick" name="opening_pick">
+ <option value="">Usar playbook padrão</option>
+ {% for o in openings or [] %}
+ <option value="{{ o }}">{{ o[:110] }}{% if o|length > 110 %}…{% endif %}</option>
+ {% endfor %}
+ </select>
+ <span class="wizard-hint">Use {empresa} e {nome} se editar depois.</span>
+ </label>
+ </div>
+ </section>
+
+ <button type="submit" class="wizard-submit">
+ Salvar e conectar WhatsApp
+ </button>
+ </div>
+
+ <div class="wizard-col wizard-col--side">
+ <section class="wizard-block">
+ <h2>Para quem prospectar</h2>
+ <p class="wizard-hint mb-3">Toque no nicho para ver o playbook ao lado.</p>
+ <div class="wizard-niches">
  {% set current = (settings.niches[0] if settings and settings.niches else 'clinica') %}
  {% for key, label, hint in niches %}
- <label class="flex gap-3 rounded-xl border border-stone-200 bg-white p-3 cursor-pointer hover:border-teal-600/40">
- <input type="radio" name="niche" value="{{ key }}" class="mt-1"
+ <label class="wizard-niche {% if current == key %}is-active{% endif %}">
+ <input type="radio" name="niche" value="{{ key }}"
  hx-get="/app/comecar/preview?niche={{ key }}"
  hx-target="#playbook-preview"
  hx-swap="innerHTML"
  {% if current == key %}checked{% endif %} required />
- <span>
- <span class="block text-sm font-medium">{{ label }}</span>
- <span class="block text-xs text-stone-500 mt-0.5">{{ hint }}</span>
- </span>
+ <span class="wizard-niche__label">{{ label }}</span>
+ <span class="wizard-niche__hint">{{ hint }}</span>
  </label>
  {% endfor %}
  </div>
  </section>
 
- <section class="space-y-3">
- <h2 class="text-sm font-medium text-stone-800">Onde e quanto</h2>
- <label class="block text-sm">
- <span class="text-stone-600">Cidades (vírgula)</span>
- <input name="cities" required
- value="{{ settings.cities|join(', ') if settings and settings.cities else '' }}"
- placeholder="Cascavel, Toledo"
- class="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2" />
- </label>
- <label class="block text-sm">
- <span class="text-stone-600">Envios por dia (meta; o limite sobe aos poucos no começo)</span>
- <input type="number" name="daily_limit" min="1" max="15"
- value="{{ settings.daily_limit if settings else 5 }}"
- class="mt-1 w-40 rounded-lg border border-stone-300 px-3 py-2" />
- <span class="block text-xs text-stone-400 mt-1">
- Comece com 5. Número novo sobe sozinho até o teto do plano. Janela 9h-18h (Brasília).
- </span>
- </label>
- <div class="flex gap-3">
- <label class="block text-sm">
- <span class="text-stone-600">Início (h)</span>
- <input type="number" name="quiet_start" min="0" max="23" id="quiet-start"
- value="{{ settings.quiet_start if settings and settings.quiet_start is defined else pack_quiet_start }}"
- class="mt-1 w-20 rounded-lg border border-stone-300 px-3 py-2" />
- </label>
- <label class="block text-sm">
- <span class="text-stone-600">Fim (h)</span>
- <input type="number" name="quiet_end" min="1" max="24" id="quiet-end"
- value="{{ settings.quiet_end if settings and settings.quiet_end is defined else pack_quiet_end }}"
- class="mt-1 w-20 rounded-lg border border-stone-300 px-3 py-2" />
- </label>
- </div>
- <label class="block text-sm">
- <span class="text-stone-600">Captura automática (horas; 0 = só manual)</span>
- <input type="number" name="capture_every_hours" min="0" max="168"
- value="{{ settings.capture_every_hours if settings and settings.capture_every_hours is defined else 0 }}"
- class="mt-1 w-40 rounded-lg border border-stone-300 px-3 py-2" />
- </label>
- <label class="block text-sm">
- <span class="text-stone-600">Abertura A/B (opcional)</span>
- <select id="opening-pick" name="opening_pick" class="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 text-sm">
- <option value="">Usar playbook padrão</option>
- {% for o in openings or [] %}
- <option value="{{ o }}">{{ o[:90] }}{% if o|length > 90 %}…{% endif %}</option>
- {% endfor %}
- </select>
- <span class="block text-xs text-stone-400 mt-1">Use {empresa} e {nome} se editar depois.</span>
- </label>
- </section>
-
- <section class="rounded-xl border border-stone-200 bg-white p-4">
- <h2 class="text-sm font-medium text-stone-800">Preview do playbook</h2>
- <p class="text-xs text-stone-500 mt-1">Abertura, FAQ e um exemplo de resposta. Sem montar fluxo.</p>
- <div id="playbook-preview">
+ <section class="wizard-block wizard-preview sticky top-4">
+ <h2>Preview do playbook</h2>
+ <p class="wizard-hint">Abertura, FAQ e um exemplo de resposta.</p>
+ <div id="playbook-preview" class="wizard-preview__body">
  {% set pp = pack_preview or {} %}
- <div class="space-y-3 mt-2">
  {% if pp.opening %}
- <div>
- <p class="text-[10px] uppercase tracking-wide text-stone-400">Abertura</p>
- <p class="text-sm text-stone-800 mt-0.5">{{ pp.opening }}</p>
+ <div class="wizard-preview__item">
+ <p class="wizard-preview__k">Abertura</p>
+ <p>{{ pp.opening }}</p>
  </div>
  {% endif %}
  {% if pp.faqs %}
- <div>
- <p class="text-[10px] uppercase tracking-wide text-stone-400">FAQ do pack</p>
- <ul>
+ <div class="wizard-preview__item">
+ <p class="wizard-preview__k">FAQ do pack</p>
  {% for f in pp.faqs %}
- <li class="text-sm text-stone-600 mt-2">
- <span class="font-medium text-stone-800">{{ f.question }}</span>
- <span class="block text-xs text-stone-500 mt-0.5">{{ f.answer }}</span>
- </li>
+ <p class="mt-2"><strong>{{ f.question }}</strong><br /><span class="text-stone-500 text-sm">{{ f.answer }}</span></p>
  {% endfor %}
- </ul>
  </div>
  {% endif %}
  {% if pp.sample_reply %}
- <div>
- <p class="text-[10px] uppercase tracking-wide text-stone-400">Se o lead perguntar preço</p>
- <p class="text-sm text-stone-700 mt-0.5">{{ pp.sample_reply }}</p>
+ <div class="wizard-preview__item">
+ <p class="wizard-preview__k">Se o lead perguntar preço</p>
+ <p>{{ pp.sample_reply }}</p>
  </div>
  {% endif %}
  {% if pp.angles %}
- <ul class="space-y-1 border-t border-stone-100 pt-2">
+ <ul class="wizard-preview__angles">
  {% for a in pp.angles %}
- <li class="text-xs text-stone-500">· {{ a.cta }}</li>
+ <li>· {{ a.cta }}</li>
  {% endfor %}
  </ul>
  {% endif %}
  </div>
- </div>
  </section>
-
- <button type="submit" class="w-full rounded-lg bg-teal-700 text-white py-2.5 text-sm font-medium hover:bg-teal-800">
- Salvar e conectar WhatsApp
- </button>
+ </div>
  </form>
  </main>
 </div>

@@ -198,15 +198,13 @@ async def preview_angles(request: Request, niche: str = "clinica"):
 
     faqs = "".join(
         (
-            f'<li class="text-sm text-stone-600 mt-2">'
-            f'<span class="font-medium text-stone-800">{escape(f["question"])}</span>'
-            f'<span class="block text-xs text-stone-500 mt-0.5">{escape(f["answer"])}</span></li>'
+            f'<p class="mt-2"><strong>{escape(f["question"])}</strong><br />'
+            f'<span class="text-stone-500 text-sm">{escape(f["answer"])}</span></p>'
         )
         for f in prev["faqs"]
     )
     angles = "".join(
-        f'<li class="text-xs text-stone-500">· {escape(a["cta"])}</li>'
-        for a in prev["angles"]
+        f"<li>· {escape(a['cta'])}</li>" for a in prev["angles"]
     )
     opens = "".join(
         f'<option value="{escape(o)}">{escape(o[:90])}{"…" if len(o) > 90 else ""}</option>'
@@ -219,35 +217,29 @@ async def preview_angles(request: Request, niche: str = "clinica"):
     pack = get_pack(niche)
     return HTMLResponse(
         f"""
-<div class="space-y-3 mt-2">
-  <div>
-    <p class="text-[10px] uppercase tracking-wide text-stone-400">Abertura</p>
-    <p class="text-sm text-stone-800 mt-0.5">{opening}</p>
+<div class="wizard-preview__body">
+  <div class="wizard-preview__item">
+    <p class="wizard-preview__k">Abertura</p>
+    <p>{opening}</p>
   </div>
-  <div>
-    <p class="text-[10px] uppercase tracking-wide text-stone-400">FAQ do pack</p>
+  <div class="wizard-preview__item">
+    <p class="wizard-preview__k">FAQ do pack</p>
     <ul>{faqs}</ul>
   </div>
-  <div>
-    <p class="text-[10px] uppercase tracking-wide text-stone-400">Se o lead perguntar preço</p>
-    <p class="text-sm text-stone-700 mt-0.5">{sample}</p>
+  <div class="wizard-preview__item">
+    <p class="wizard-preview__k">Se o lead perguntar preço</p>
+    <p>{sample}</p>
   </div>
-  <p class="text-xs text-stone-500">Janela sugerida: {pack.quiet_start}h–{pack.quiet_end}h · FU base {pack.fu_n1_hours}h</p>
-  <ul class="space-y-1 border-t border-stone-100 pt-2">{angles}</ul>
+  <p class="wizard-hint">Janela sugerida: {pack.quiet_start}h–{pack.quiet_end}h · FU base {pack.fu_n1_hours}h</p>
+  <ul class="wizard-preview__angles">{angles}</ul>
 </div>
-<select id="opening-pick" name="opening_pick"
-  class="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 text-sm"
-  hx-swap-oob="true">
+<select id="opening-pick" name="opening_pick" hx-swap-oob="true">
   <option value="">Usar playbook padrão</option>
   {opens}
 </select>
 <input type="number" name="quiet_start" id="quiet-start" min="0" max="23"
-  value="{pack.quiet_start}"
-  class="mt-1 w-20 rounded-lg border border-stone-300 px-3 py-2"
-  hx-swap-oob="true" />
+  value="{pack.quiet_start}" hx-swap-oob="true" />
 <input type="number" name="quiet_end" id="quiet-end" min="1" max="24"
-  value="{pack.quiet_end}"
-  class="mt-1 w-20 rounded-lg border border-stone-300 px-3 py-2"
-  hx-swap-oob="true" />
+  value="{pack.quiet_end}" hx-swap-oob="true" />
 """
     )
