@@ -90,16 +90,16 @@ a {
   color: var(--paper) !important;
 }
 
-/* Hero — one composition, full-bleed atmosphere */
+/* Hero — one composition, content centered (no dead middle) */
 .lp-hero {
   position: relative;
   min-height: 100vh;
   min-height: 100dvh;
   display: grid;
   grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
-  align-items: end;
+  align-items: center;
   gap: clamp(1.5rem, 4vw, 3rem);
-  padding: 7rem clamp(1.25rem, 4vw, 2.5rem) 3.5rem;
+  padding: 6.25rem clamp(1.25rem, 4vw, 2.5rem) 3rem;
   overflow: hidden;
   isolation: isolate;
 }
@@ -112,53 +112,39 @@ a {
   right: 0;
   bottom: 0;
   z-index: 1;
-  height: clamp(4rem, 12vw, 7rem);
+  height: clamp(3rem, 8vw, 5rem);
   pointer-events: none;
   background: linear-gradient(
     180deg,
     transparent 0%,
-    rgba(243, 246, 244, 0.55) 55%,
+    rgba(243, 246, 244, 0.7) 55%,
     var(--paper) 100%
   );
 }
 
+/* Atmospheric plane — no washed photo dead zone */
 .lp-hero-bg {
   position: absolute;
   inset: 0;
   z-index: 0;
-  background: #d9e3dc;
-}
-
-/* Full-bleed photo plane + left-biased scrim for type */
-.lp-hero-photo {
-  position: absolute;
-  inset: 0;
   background:
-    url("/static/img/landing-hero-bg.jpg") center / cover no-repeat;
-  transform: scale(1.04);
-  transform-origin: 65% 40%;
+    linear-gradient(
+      118deg,
+      #eef3f0 0%,
+      #e4ece7 38%,
+      #d5e4dc 62%,
+      #c5d8ce 100%
+    );
 }
 
-.lp-hero-bg::after {
+.lp-hero-bg::before {
   content: "";
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(
-      105deg,
-      rgba(243, 246, 244, 0.97) 0%,
-      rgba(243, 246, 244, 0.92) 28%,
-      rgba(243, 246, 244, 0.72) 48%,
-      rgba(243, 246, 244, 0.28) 68%,
-      rgba(243, 246, 244, 0.08) 100%
-    ),
-    linear-gradient(
-      180deg,
-      rgba(18, 26, 23, 0.12) 0%,
-      transparent 28%,
-      transparent 72%,
-      rgba(18, 26, 23, 0.1) 100%
-    );
+    radial-gradient(ellipse 55% 70% at 78% 42%, rgba(15, 107, 85, 0.18), transparent 58%),
+    radial-gradient(ellipse 40% 45% at 92% 78%, rgba(18, 26, 23, 0.12), transparent 60%),
+    radial-gradient(ellipse 50% 40% at 12% 18%, rgba(15, 107, 85, 0.08), transparent 55%);
 }
 
 .lp-hero-mesh {
@@ -166,13 +152,11 @@ a {
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  opacity: 0.85;
+  opacity: 0.55;
   background:
-    radial-gradient(ellipse 60% 50% at 8% 22%, rgba(15, 107, 85, 0.1), transparent 62%),
-    radial-gradient(ellipse 45% 38% at 92% 78%, rgba(18, 26, 23, 0.1), transparent 58%),
-    radial-gradient(ellipse 35% 30% at 70% 18%, rgba(15, 107, 85, 0.05), transparent 55%),
-    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.45'/%3E%3C/svg%3E");
-  background-blend-mode: multiply, multiply, normal, soft-light;
+    radial-gradient(ellipse 50% 42% at 70% 30%, rgba(15, 107, 85, 0.09), transparent 60%),
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.35'/%3E%3C/svg%3E");
+  background-blend-mode: multiply, soft-light;
   animation: lp-drift 22s ease-in-out infinite alternate;
 }
 
@@ -189,7 +173,7 @@ a {
   position: relative;
   z-index: 2;
   max-width: 34rem;
-  padding-bottom: 0.5rem;
+  padding-block: 0.5rem;
 }
 
 .lp-brand {
@@ -266,22 +250,22 @@ a {
   border-color: var(--accent);
 }
 
-/* Conversation as visual plane — not a floating card chrome */
+/* Conversation as visual plane — fills the right, closes the gap */
 .lp-hero-visual {
   position: relative;
   z-index: 2;
-  align-self: stretch;
   display: flex;
-  align-items: flex-end;
-  min-height: 18rem;
+  align-items: center;
+  justify-content: flex-end;
+  min-height: 0;
 }
 
 .lp-thread {
   width: 100%;
   max-width: 26rem;
   margin-left: auto;
-  padding: 1.5rem 0 0.25rem;
-  border-left: 2px solid rgba(15, 107, 85, 0.35);
+  padding: 1.25rem 0;
+  border-left: 2px solid rgba(15, 107, 85, 0.4);
   padding-left: 1.35rem;
 }
 
@@ -621,37 +605,16 @@ a {
     min-height: auto;
     padding-top: 5.75rem;
     padding-bottom: 2.5rem;
-  }
-
-  /* Stronger, flatter scrim so copy stays readable over photo */
-  .lp-hero-bg::after {
-    background:
-      linear-gradient(
-        180deg,
-        rgba(243, 246, 244, 0.94) 0%,
-        rgba(243, 246, 244, 0.9) 42%,
-        rgba(243, 246, 244, 0.82) 100%
-      ),
-      linear-gradient(
-        105deg,
-        rgba(243, 246, 244, 0.55) 0%,
-        transparent 70%
-      );
-  }
-
-  .lp-hero-photo {
-    transform: scale(1.08);
-    transform-origin: 70% 30%;
-    opacity: 0.55;
+    gap: 1.75rem;
   }
 
   .lp-hero-mesh {
-    opacity: 0.55;
+    opacity: 0.4;
   }
 
   .lp-hero-visual {
-    order: -1;
-    min-height: 0;
+    order: 1;
+    justify-content: flex-start;
   }
 
   .lp-thread {
