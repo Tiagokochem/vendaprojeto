@@ -519,6 +519,30 @@ a {
 }
 
 /* Donate */
+.lp-pix {
+  margin-top: 1.5rem;
+  padding: 1.1rem 1.2rem;
+  border: 1px solid var(--line);
+  border-radius: 0.25rem;
+  background: var(--white);
+  max-width: 22rem;
+}
+
+.lp-pix-label {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.lp-pix-key {
+  margin: 0.4rem 0 0.75rem;
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
+}
+
 .lp-donate {
   margin-top: 1.5rem;
   display: flex;

@@ -116,15 +116,20 @@
     {% elif doar == 'pendente' %}
     <p class="lp-flash">Pagamento pendente. Obrigado mesmo assim.</p>
     {% elif doar == 'indisponivel' or doar == 'erro' %}
-    <p class="lp-flash">Doação indisponível no momento.</p>
+    <p class="lp-flash">Doação indisponível no momento. Use o Pix abaixo.</p>
     {% endif %}
+    <div class="lp-pix">
+      <p class="lp-pix-label">Pix (chave celular)</p>
+      <p class="lp-pix-key" id="pix-key">45988443877</p>
+      <button type="button" class="lp-btn-ghost" id="pix-copy">Copiar Pix</button>
+    </div>
     {% if donation_url or mp_configured %}
     <form method="post" action="/doar" class="lp-donate">
       <label>
         Valor R$
         <input type="number" name="amount" min="1" value="10" />
       </label>
-      <button type="submit" class="lp-btn-primary">Doar</button>
+      <button type="submit" class="lp-btn-primary">Doar no Mercado Pago</button>
     </form>
     {% endif %}
   </section>
@@ -137,5 +142,21 @@
       <a href="/#doar">Doar</a>
     </p>
   </footer>
+  <script>
+  (function () {
+    var btn = document.getElementById("pix-copy");
+    var key = document.getElementById("pix-key");
+    if (!btn || !key) return;
+    btn.addEventListener("click", function () {
+      var t = key.textContent.trim();
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(t).then(function () {
+          btn.textContent = "Copiado";
+          setTimeout(function () { btn.textContent = "Copiar Pix"; }, 1600);
+        });
+      }
+    });
+  })();
+  </script>
 </body>
 </html>

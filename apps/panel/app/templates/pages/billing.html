@@ -109,6 +109,11 @@
  <p class="mt-1 text-sm text-stone-500">
  Apoio voluntário (não libera plano). Ajuda a manter o projeto no ar.
  </p>
+ <div class="mt-4 rounded-lg border border-stone-100 bg-stone-50 px-4 py-3">
+ <p class="text-xs text-stone-500">Pix (chave celular)</p>
+ <p class="mt-1 text-lg font-semibold tracking-wide" id="pix-key">45988443877</p>
+ <button type="button" id="pix-copy" class="mt-2 text-sm text-teal-700 underline underline-offset-2">Copiar Pix</button>
+ </div>
  <form method="post" action="/app/billing/doar" class="mt-3 flex flex-wrap items-end gap-2">
  <label class="text-sm">
  <span class="text-stone-600">Valor (R$)</span>
@@ -122,9 +127,25 @@
  </form>
  {% if donation_url %}
  <p class="mt-2 text-xs text-stone-400">Ou <a class="underline text-teal-700" href="{{ donation_url }}" target="_blank" rel="noopener">abrir link de doação</a>.</p>
- {% elif not mp_configured %}
- <p class="mt-2 text-xs text-amber-700">Configure MERCADOPAGO_ACCESS_TOKEN ou MERCADOPAGO_DONATION_URL.</p>
  {% endif %}
+ <script>
+ (function () {
+   var btn = document.getElementById("pix-copy");
+   var key = document.getElementById("pix-key");
+   if (!btn || !key) return;
+   btn.addEventListener("click", function () {
+     var t = key.textContent.trim();
+     if (navigator.clipboard && navigator.clipboard.writeText) {
+       navigator.clipboard.writeText(t).then(function () {
+         btn.textContent = "Copiado";
+         setTimeout(function () { btn.textContent = "Copiar Pix"; }, 1600);
+       });
+     } else {
+       btn.textContent = t;
+     }
+   });
+ })();
+ </script>
  </section>
 
  <div class="mt-6 grid gap-4 sm:grid-cols-3 max-w-3xl">
