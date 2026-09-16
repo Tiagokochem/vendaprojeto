@@ -1,6 +1,10 @@
 {% extends "base.html" %}
 {% block title %}WhatsApp · Vendaprojeto{% endblock %}
 {% block body %}
+{% set evo_status = evo_status or (settings.evo_status if settings else 'disconnected') %}
+{% set smoke_ok = settings.smoke_ok if settings else false %}
+{% set connected = evo_status == 'open' %}
+{% set phase = 'done' if connected and smoke_ok else ('test' if connected else 'connect') %}
 <div class="app-shell">
   {% include "partials/nav.html" %}
   <main class="app-main max-w-2xl">
@@ -19,117 +23,134 @@
       {% endfor %}
     </ol>
 
-    <h1 class="mt-6 text-2xl font-semibold tracking-tight">Conectar WhatsApp</h1>
-    <p class="text-sm text-stone-500 mt-1">Passo 2 · idade do número + QR + teste do bot</p>
+    <h1 class="mt-6 text-2xl font-semibold tracking-tight">WhatsApp</h1>
+    <p class="text-sm text-stone-500 mt-1">Só três coisas: gerar QR, escanear, mandar um oi.</p>
 
     {% if flash == 'chip_ok' %}
-    <p class="mt-3 text-sm text-teal-800">Idade do número salva. O limite de envio foi recalculado.</p>
+    <p class="mt-3 text-sm text-teal-800">Ritmo salvo.</p>
     {% elif flash == 'chip_erro' %}
     <p class="mt-3 text-sm text-amber-800">Opção inválida. Escolha de novo.</p>
     {% elif flash == 'connect_ok' or flash == 'qr_pendente' %}
-    <p class="mt-3 text-sm text-teal-800">Instância pronta. Escaneie o QR abaixo.</p>
+    <p class="mt-3 text-sm text-teal-800">QR pronto. Escaneie com o celular do negócio.</p>
     {% elif flash == 'already_open' %}
-    <p class="mt-3 text-sm text-teal-800">Este WhatsApp já estava conectado.</p>
+    <p class="mt-3 text-sm text-teal-800">Já estava conectado.</p>
     {% elif flash == 'connect_erro' %}
-    <p class="mt-3 text-sm text-amber-800">Não deu para criar a instância. Tente de novo em alguns segundos.</p>
+    <p class="mt-3 text-sm text-amber-800">Não deu para gerar o QR. Espere uns segundos e tente de novo.</p>
     {% elif flash == 'evo_missing' %}
-    <p class="mt-3 text-sm text-amber-800">Evolution não configurada no servidor (AUTHENTICATION_API_KEY).</p>
+    <p class="mt-3 text-sm text-amber-800">WhatsApp do servidor ainda não está ligado. Avise quem cuida da hospedagem.</p>
     {% elif flash == 'disconnected' %}
-    <p class="mt-3 text-sm text-stone-600">WhatsApp desconectado.</p>
+    <p class="mt-3 text-sm text-stone-600">Desconectado. Gere o QR de novo quando quiser.</p>
     {% endif %}
 
-    <div class="mt-6 rounded-xl border border-stone-200 bg-white p-6 space-y-4">
-      <div>
-        <h2 class="font-medium text-sm">Há quanto tempo este número está ativo?</h2>
-        <p class="text-xs text-stone-500 mt-1">
-          Isso define o ponto de partida. Número novo começa baixo; número antigo libera mais cedo.
-        </p>
-        <form method="post" action="/app/whatsapp/chip-age" class="mt-3 space-y-2">
-          {% for opt in chip_ages %}
-          <label class="flex items-start gap-2 rounded-lg border border-stone-200 px-3 py-2 text-sm cursor-pointer hover:bg-stone-50
-            {% if (settings.chip_age or 'new') == opt.key %}border-teal-600 bg-teal-50{% endif %}">
-            <input type="radio" name="chip_age" value="{{ opt.key }}" class="mt-1"
-              {% if (settings.chip_age or 'new') == opt.key %}checked{% endif %} required />
-            <span>
-              <span class="font-medium">{{ opt.label }}</span>
-              <span class="block text-xs text-stone-500">{{ opt.hint }} Ponto de partida ~{{ opt.start_cap }}/dia.</span>
-            </span>
-          </label>
-          {% endfor %}
-          <button class="mt-2 rounded-lg bg-teal-700 text-white px-4 py-2 text-sm">Salvar idade do número</button>
-        </form>
-        {% if warmup and warmup.trajectory %}
-        <p class="mt-3 text-xs text-stone-500">
-          Trajeto previsto
-          {% if warmup.chip_age_label %}({{ warmup.chip_age_label }}){% endif %}:
-          {% for t in warmup.trajectory %}
-            dia {{ t.product_day }}→{{ t.cap }}{% if not loop.last %}, {% endif %}
-          {% endfor %}
-          (teto do plano {{ warmup.plan_cap }}).
-        </p>
-        {% endif %}
-      </div>
-    </div>
-
-    <div class="mt-6 rounded-xl border border-stone-200 bg-white p-6 space-y-4">
-      {% if request.query_params.get('onboarding') %}
-      <p class="text-sm text-teal-800 bg-teal-50 border border-teal-200 rounded-lg px-3 py-2">
-        Negócio salvo. Informe a idade do número, conecte o WhatsApp e mande um oi (passo 3).
-      </p>
-      {% endif %}
-
-      {% if settings and settings.evo_status == 'open' and not settings.smoke_ok %}
-      <p class="text-sm text-amber-900 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-        WhatsApp conectado. <strong>Mande “oi” deste número para a própria conversa do bot</strong>
-        (ou de outro celular para este número). O bot responde e libera os envios.
-      </p>
-      {% endif %}
-
-      {% if settings and settings.smoke_ok %}
-      <p class="text-sm text-teal-800 bg-teal-50 border border-teal-200 rounded-lg px-3 py-2">
-        Bot validado. Envios do dia liberados conforme o ritmo.
-        <a href="/app" class="underline font-medium">Ir ao início</a>
-      </p>
-      {% endif %}
-
+    {# Guia: uma ação por vez #}
+    <div class="mt-6 rounded-xl border border-stone-200 bg-white p-6 space-y-5">
       {% if not evolution_configured %}
-      <p class="text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-        Evolution ainda não está no ar neste ambiente. Defina <code>AUTHENTICATION_API_KEY</code>
-        e suba o serviço <code>evolution</code> no Docker Compose.
+      <p class="text-sm text-amber-900 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+        O WhatsApp deste ambiente ainda não foi ligado no servidor.
+        Você não precisa configurar chave nem Manager — isso é do lado do admin.
       </p>
-      {% endif %}
+      {% elif phase == 'done' %}
+      <p class="text-sm text-teal-900 bg-teal-50 border border-teal-200 rounded-lg px-3 py-2">
+        Tudo certo: conectado e testado.
+        <a href="/app" class="font-medium underline underline-offset-2">Ir ao início</a>
+      </p>
+      {% elif phase == 'test' %}
+      <div class="rounded-lg bg-amber-50 border border-amber-200 px-3 py-3 text-sm text-amber-950 space-y-2">
+        <p class="font-medium">Último passo: teste</p>
+        <p>No celular conectado, abra o WhatsApp e mande <strong>oi</strong> para este mesmo número
+          (ou de outro celular para o número do bot).</p>
+        <p class="text-amber-800/80">Quando o bot responder, os envios do dia liberam.</p>
+      </div>
+      <form method="post" action="/app/whatsapp/sync">
+        <button class="rounded-lg border border-stone-200 px-4 py-2 text-sm">Já mandei oi — atualizar</button>
+      </form>
+      {% else %}
+      <div class="rounded-lg bg-teal-50 border border-teal-200 px-3 py-3 text-sm text-teal-950 space-y-1">
+        <p class="font-medium">Agora: conectar</p>
+        <p>1. Clique em <strong>Gerar QR</strong></p>
+        <p>2. No celular: WhatsApp → Aparelhos conectados → Conectar</p>
+        <p>3. Escaneie o código desta tela (não precisa abrir outro site)</p>
+      </div>
 
       {% include "partials/whatsapp_qr.html" %}
 
-      <div class="flex flex-wrap gap-2 pt-2">
+      <div class="flex flex-wrap gap-2 pt-1">
         <form method="post" action="/app/whatsapp/connect">
-          <button class="rounded-lg bg-teal-700 text-white px-4 py-2 text-sm" {% if not evolution_configured %}disabled{% endif %}>
-            Conectar / Gerar QR
+          <button class="rounded-lg bg-teal-700 text-white px-4 py-2.5 text-sm font-medium" {% if not evolution_configured %}disabled{% endif %}>
+            {% if qr_base64 %}Gerar outro QR{% else %}Gerar QR{% endif %}
           </button>
         </form>
+        {% if evo_status == 'connecting' or qr_base64 %}
         <form method="post" action="/app/whatsapp/sync">
-          <button class="rounded-lg border border-stone-200 px-4 py-2 text-sm">Atualizar status</button>
+          <button class="rounded-lg border border-stone-200 px-4 py-2.5 text-sm">Já escaneei</button>
         </form>
-        <form method="post" action="/app/whatsapp/disconnect">
-          <button class="rounded-lg border border-stone-200 px-4 py-2 text-sm">Desconectar</button>
-        </form>
+        {% endif %}
       </div>
+      {% endif %}
 
-      <details class="mt-2 text-sm">
-        <summary class="cursor-pointer text-stone-500 hover:text-stone-800">Detalhes técnicos</summary>
-        <div class="mt-2 space-y-2 rounded-lg border border-stone-100 bg-stone-50 p-3 text-xs text-stone-600">
-          <p>Instância: <code class="bg-white px-1 rounded">{{ instance }}</code></p>
-          <p>Status bruto: <code>{{ evo_status }}</code></p>
-          <p>Webhook inbound: <code>/webhook/evolution/{{ user.tenant_id }}</code></p>
-          {% if sync_detail %}
-          <p>Sync: {{ sync_detail }}</p>
-          {% endif %}
-          {% if live %}
-          <pre class="overflow-auto whitespace-pre-wrap">{{ live }}</pre>
-          {% endif %}
-        </div>
-      </details>
+      {% if phase != 'connect' and evolution_configured %}
+      <div class="pt-2 border-t border-stone-100 flex flex-wrap gap-2">
+        <form method="post" action="/app/whatsapp/disconnect">
+          <button class="rounded-lg border border-stone-200 px-3 py-1.5 text-xs text-stone-600">Desconectar</button>
+        </form>
+        {% if phase == 'done' %}
+        <form method="post" action="/app/whatsapp/connect">
+          <button class="rounded-lg border border-stone-200 px-3 py-1.5 text-xs text-stone-600">Gerar QR de novo</button>
+        </form>
+        {% endif %}
+      </div>
+      {% endif %}
     </div>
+
+    {# Ritmo: opcional, fora do caminho crítico #}
+    <details class="mt-4 rounded-xl border border-stone-200 bg-white p-4 text-sm">
+      <summary class="cursor-pointer text-stone-600 hover:text-stone-900">
+        Ritmo do número (opcional)
+        {% if settings and settings.chip_age %}
+        <span class="text-stone-400">· já definido</span>
+        {% endif %}
+      </summary>
+      <p class="mt-2 text-xs text-stone-500">
+        Número novo começa com menos envios/dia. Se não escolher, usamos “novo” automaticamente.
+      </p>
+      <form method="post" action="/app/whatsapp/chip-age" class="mt-3 space-y-2">
+        {% for opt in chip_ages %}
+        <label class="flex items-start gap-2 rounded-lg border border-stone-200 px-3 py-2 text-sm cursor-pointer hover:bg-stone-50
+          {% if (settings.chip_age or 'new') == opt.key %}border-teal-600 bg-teal-50{% endif %}">
+          <input type="radio" name="chip_age" value="{{ opt.key }}" class="mt-1"
+            {% if (settings.chip_age or 'new') == opt.key %}checked{% endif %} required />
+          <span>
+            <span class="font-medium">{{ opt.label }}</span>
+            <span class="block text-xs text-stone-500">{{ opt.hint }}</span>
+          </span>
+        </label>
+        {% endfor %}
+        <button class="mt-2 rounded-lg border border-stone-200 px-3 py-1.5 text-sm">Salvar ritmo</button>
+      </form>
+    </details>
+
+    {% if advanced %}
+    <details class="mt-3 text-sm">
+      <summary class="cursor-pointer text-stone-400 hover:text-stone-700">Avançado (admin)</summary>
+      <div class="mt-2 space-y-2 rounded-lg border border-stone-100 bg-stone-50 p-3 text-xs text-stone-600">
+        <p>Instância: <code class="bg-white px-1 rounded">{{ instance }}</code></p>
+        <p>Status: <code>{{ evo_status }}</code> · {{ evo_label }}</p>
+        <p>Webhook: <code>/webhook/evolution/{{ user.tenant_id }}</code></p>
+        {% if manager_url %}
+        <p>Manager: <a class="underline" href="{{ manager_url }}" target="_blank" rel="noopener">{{ manager_url }}</a></p>
+        {% endif %}
+        {% if sync_detail %}<p>Sync: {{ sync_detail }}</p>{% endif %}
+        <div class="flex flex-wrap gap-2 pt-1">
+          <form method="post" action="/app/whatsapp/sync">
+            <button class="rounded border border-stone-200 bg-white px-2 py-1">Sync</button>
+          </form>
+          <form method="post" action="/app/whatsapp/disconnect">
+            <button class="rounded border border-stone-200 bg-white px-2 py-1">Logout WA</button>
+          </form>
+        </div>
+      </div>
+    </details>
+    {% endif %}
   </main>
 </div>
 {% endblock %}

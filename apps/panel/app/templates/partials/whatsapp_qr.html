@@ -7,15 +7,15 @@
   hx-swap="outerHTML"
   {% endif %}
 >
-  <p class="text-sm"><span class="text-stone-500">Status:</span>
-    <span class="font-medium">{{ evo_label }}</span>
+  <p class="text-sm text-stone-500">
+    Status: <span class="font-medium text-stone-800">{{ evo_label }}</span>
   </p>
 
   {% if evo_status == 'open' %}
-  <p class="mt-2 text-sm text-teal-800">WhatsApp conectado.</p>
+  <p class="mt-2 text-sm text-teal-800 font-medium">Conectado.</p>
   {% elif qr_base64 %}
   <div class="mt-4 flex flex-col items-start gap-3">
-    <p class="text-sm text-stone-600">Escaneie com o WhatsApp do número do negócio (QR expira em cerca de 1 min).</p>
+    <p class="text-sm text-stone-600">Escaneie agora (o QR expira em cerca de 1 minuto).</p>
     <img
       src="data:image/png;base64,{{ qr_base64 }}"
       alt="QR Code WhatsApp"
@@ -24,23 +24,12 @@
       height="224"
     />
     {% if pairing_code %}
-    <p class="text-xs text-stone-500">Código de pareamento: <code class="rounded bg-stone-100 px-1">{{ pairing_code }}</code></p>
+    <p class="text-xs text-stone-500">Se pedir código: <code class="rounded bg-stone-100 px-1">{{ pairing_code }}</code></p>
     {% endif %}
   </div>
   {% elif evolution_configured and evo_status != 'open' %}
   <p class="mt-3 text-sm text-stone-500">
-    Sem QR no momento.
-    Clique em <strong>Conectar / Gerar QR</strong> ou aguarde o refresh.
-    {% if qr_detail %}<span class="text-stone-400">({{ qr_detail }})</span>{% endif %}
+    Ainda sem QR. Clique em <strong>Gerar QR</strong>.
   </p>
-  {% if manager_url %}
-  <p class="mt-2 text-sm">
-    Alternativa:
-    <a href="{{ manager_url }}" target="_blank" rel="noopener" class="text-teal-700 underline underline-offset-2">
-      abrir Manager Evolution
-    </a>
-    → instância <code>{{ instance }}</code> → Connect.
-  </p>
-  {% endif %}
   {% endif %}
 </div>

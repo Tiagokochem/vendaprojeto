@@ -52,6 +52,7 @@ def _page_ctx(request, user, tid, *, qr=None, flash=None):
         "pairing_code": qr.pairing_code if qr else None,
         "qr_detail": qr.detail if qr else None,
         "manager_url": _manager_url(),
+        "advanced": onboarding.is_advanced(request),
     }
 
 
@@ -123,9 +124,13 @@ async def whatsapp_connect(request: Request):
         flash = "evo_missing"
         status = "disconnected"
     else:
+        # Ritmo padrão sem obrigar o usuário a escolher antes
+        state_row = onboarding.get_tenant_settings(tid)
+        if not (state_row or {}).get("chip_age"):
+            warmup_svc.set_chip_age(tid, "new")
+
         wh = _webhook_url(tid)
         # Se já existe sem QR, recria para gerar de novo
-        state_row = onboarding.get_tenant_settings(tid)
         existing = (state_row or {}).get("evo_instance")
         if existing == instance and (state_row or {}).get("evo_status") != "open":
             ensured = evolution.recreate_instance(instance, wh)
