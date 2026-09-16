@@ -88,7 +88,10 @@ def extract_qr(payload: dict | None) -> tuple[str | None, str | None]:
     if isinstance(qr, dict):
         b64 = b64 or qr.get("base64")
         pairing = pairing or qr.get("pairingCode")
-    elif isinstance(qr, str) and qr.startswith("data:image"):
+        # v2.3 create: qrcode.code às vezes é o raw; base64 é a imagem
+        if not b64 and isinstance(qr.get("base64"), str):
+            b64 = qr.get("base64")
+    elif isinstance(qr, str) and (qr.startswith("data:image") or len(qr) > 100):
         b64 = qr
     if isinstance(payload.get("data"), dict):
         data = payload["data"]
@@ -104,6 +107,12 @@ def extract_qr(payload: dict | None) -> tuple[str | None, str | None]:
     if isinstance(pairing, str):
         pairing = pairing.strip() or None
     return b64, pairing
+
+
+def recreate_instance(instance: str, webhook_url: str) -> dict:
+    """Delete + create para forçar QR novo."""
+    request(f"/instance/delete/{instance}", method="DELETE")
+    return ensure_instance(instance, webhook_url)
 
 
 def parse_connection_state(payload: dict | None) -> str:

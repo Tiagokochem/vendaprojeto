@@ -117,24 +117,45 @@ async def whatsapp_connect(request: Request):
     instance = _instance_name(user)
     status = "connecting"
     flash = "connect_ok"
+    qr = None
 
     if not evolution.configured():
         flash = "evo_missing"
         status = "disconnected"
     else:
         wh = _webhook_url(tid)
-        ensured = evolution.ensure_instance(instance, wh)
+        # Se já existe sem QR, recria para gerar de novo
+        state_row = onboarding.get_tenant_settings(tid)
+        existing = (state_row or {}).get("evo_instance")
+        if existing == instance and (state_row or {}).get("evo_status") != "open":
+            ensured = evolution.recreate_instance(instance, wh)
+        else:
+            ensured = evolution.ensure_instance(instance, wh)
         if not ensured.get("ok"):
             flash = "connect_erro"
             status = "disconnected"
-        qr = evolution.fetch_qr(instance)
-        if qr.status == "open":
-            status = "open"
-            flash = "already_open"
-        elif qr.qr_base64:
+        create_b64 = ensured.get("qr_base64")
+        create_pair = ensured.get("pairing_code")
+        if create_b64:
+            from app.services.evolution import QrResult
+
+            qr = QrResult(
+                ok=True,
+                status="connecting",
+                qr_base64=create_b64,
+                pairing_code=create_pair,
+                detail="qr_create",
+            )
             status = "connecting"
-        elif flash == "connect_ok":
-            flash = "qr_pendente"
+        else:
+            qr = evolution.fetch_qr(instance, wait_seconds=12)
+            if qr.status == "open":
+                status = "open"
+                flash = "already_open"
+            elif qr.qr_base64:
+                status = "connecting"
+            elif flash == "connect_ok":
+                flash = "qr_pendente"
 
     db.execute(
         """
@@ -147,7 +168,11 @@ async def whatsapp_connect(request: Request):
         """,
         (tid, instance, status),
     )
-    return RedirectResponse(f"/app/whatsapp?flash={flash}", status_code=303)
+    # Renderiza na hora com o QR do create (redirect perderia o base64)
+    return request.app.state.templates.TemplateResponse(
+        "pages/whatsapp.html",
+        _page_ctx(request, user, tid, qr=qr, flash=flash),
+    )
 
 
 @router.post("/app/whatsapp/sync")
