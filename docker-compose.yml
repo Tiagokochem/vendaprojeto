@@ -27,7 +27,7 @@ services:
       - redis_data:/data
 
   evolution:
-    image: evoapicloud/evolution-api:v2.2.3
+    image: evoapicloud/evolution-api:v2.3.7
     container_name: vendaprojeto_evolution
     restart: unless-stopped
     depends_on:
