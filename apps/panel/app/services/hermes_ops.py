@@ -497,8 +497,9 @@ def handle_inbound(tenant_id: str, phone: str, text: str) -> dict:
         lead_summary=(lead or {}).get("summary"),
         niche=niches[0] if niches else (lead or {}).get("niche"),
         booking_url=settings_row.get("booking_url"),
-        openai_api_key=settings.openai_api_key,
-        openai_model=settings.openai_model,
+        openai_api_key=settings.llm_api_key,
+        openai_model=settings.llm_model,
+        openai_base_url=settings.llm_base_url,
     )
 
     db.execute(

@@ -215,7 +215,7 @@ def _extract_via_llm(
     from hermes_core.extract import EXTRACT_SYSTEM, build_extract_user
     from hermes_core.llm import chat, configured, parse_json_object
 
-    if not configured(settings.openai_api_key):
+    if not configured(settings.llm_api_key):
         return []
 
     lines = []
@@ -226,12 +226,13 @@ def _extract_via_llm(
             lines.append(f"{role}: {content}")
     conversation_text = "\n".join(lines)
     llm = chat(
-        api_key=settings.openai_api_key,
-        model=settings.openai_model,
+        api_key=settings.llm_api_key,
+        model=settings.llm_model,
         system=EXTRACT_SYSTEM,
         user=build_extract_user(segment=segment, phone=phone, conversation_text=conversation_text),
         temperature=0.2,
         max_tokens=500,
+        base_url=settings.llm_base_url,
     )
     if not llm:
         return []

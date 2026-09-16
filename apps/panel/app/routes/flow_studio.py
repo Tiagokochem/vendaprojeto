@@ -183,8 +183,9 @@ async def preview_inbound(request: Request, message: str = Form(...)):
         display_name=settings_row.get("display_name"),
         kb_snippets=snippets,
         system_prompt=cfg["content"] if cfg else None,
-        openai_api_key=settings.openai_api_key,
-        openai_model=settings.openai_model,
+        openai_api_key=settings.llm_api_key,
+        openai_model=settings.llm_model,
+        openai_base_url=settings.llm_base_url,
     )
     db.execute(
         """

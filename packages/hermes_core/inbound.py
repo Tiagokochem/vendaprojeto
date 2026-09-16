@@ -100,6 +100,7 @@ def generate_inbound_reply(
     booking_url: str | None = None,
     openai_api_key: str | None = None,
     openai_model: str = "gpt-4o-mini",
+    openai_base_url: str | None = None,
     use_llm: bool = True,
 ) -> InboundResult:
     clean = sanitize_user_text(user_message)
@@ -150,6 +151,7 @@ def generate_inbound_reply(
             messages=safe_hist,
             temperature=0.4,
             max_tokens=280,
+            base_url=openai_base_url,
         )
         if llm and llm.text:
             reply = sanitize_user_text(llm.text, max_chars=800)

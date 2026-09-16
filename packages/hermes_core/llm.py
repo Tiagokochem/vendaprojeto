@@ -1,4 +1,7 @@
-"""Cliente OpenAI opcional (stdlib). Sem key → None."""
+"""Cliente LLM OpenAI-compatível (stdlib). Sem key → None.
+
+Funciona com OpenAI, Groq, OpenRouter etc. via base_url.
+"""
 from __future__ import annotations
 
 import json
@@ -8,6 +11,9 @@ import urllib.request
 from dataclasses import dataclass
 
 log = logging.getLogger("hermes_core.llm")
+
+DEFAULT_OPENAI_BASE = "https://api.openai.com/v1"
+GROQ_BASE = "https://api.groq.com/openai/v1"
 
 
 @dataclass
@@ -33,6 +39,7 @@ def chat(
     temperature: float = 0.4,
     max_tokens: int = 400,
     timeout: int = 30,
+    base_url: str | None = None,
 ) -> LLMResult | None:
     if not configured(api_key):
         return None
@@ -58,8 +65,10 @@ def chat(
         "max_tokens": max_tokens,
         "messages": payload_messages,
     }
+    root = (base_url or DEFAULT_OPENAI_BASE).rstrip("/")
+    url = f"{root}/chat/completions"
     req = urllib.request.Request(
-        "https://api.openai.com/v1/chat/completions",
+        url,
         data=json.dumps(body).encode("utf-8"),
         headers={
             "Content-Type": "application/json",
@@ -71,7 +80,7 @@ def chat(
         with urllib.request.urlopen(req, timeout=timeout) as resp:
             raw = json.loads(resp.read().decode("utf-8"))
     except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError, json.JSONDecodeError) as exc:
-        log.warning("OpenAI chat falhou: %s", exc)
+        log.warning("LLM chat falhou (%s): %s", root, exc)
         return None
 
     try:

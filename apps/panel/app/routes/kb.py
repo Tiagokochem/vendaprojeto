@@ -38,7 +38,7 @@ async def kb_list(request: Request):
             "user_email": user.email,
             "tenant_name": user.tenant_name,
             "entries": entries,
-            "llm_configured": configured(settings.openai_api_key),
+            "llm_configured": configured(settings.llm_api_key),
         },
     )
 

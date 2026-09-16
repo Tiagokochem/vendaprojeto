@@ -27,7 +27,7 @@ async def health():
     checks = {
         "db": db_ok,
         "hermes": bool(hermes.get("ok")),
-        "llm": llm_configured(settings.openai_api_key),
+        "llm": llm_configured(settings.llm_api_key),
         "evolution": bool(settings.authentication_api_key),
         "apify": bool(settings.apify_token),
         "webhook_hmac": bool(settings.webhook_hmac_secret),

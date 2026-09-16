@@ -26,7 +26,10 @@ class Settings(BaseSettings):
     postgres_port: int = 5433
 
     openai_api_key: str = ""
+    # Compat: GROQ_API_KEY no .env (teste grátis). Se preenchida, usa Groq.
+    groq_api_key: str = ""
     openai_model: str = "gpt-4o-mini"
+    openai_base_url: str = "https://api.openai.com/v1"
 
     evolution_base_url: str = "http://127.0.0.1:8091"
     authentication_api_key: str = ""
@@ -47,6 +50,25 @@ class Settings(BaseSettings):
     mercadopago_public_key: str = ""
     # Link pronto do MP (alternativa à preferência de doação)
     mercadopago_donation_url: str = ""
+
+    @property
+    def llm_api_key(self) -> str:
+        return (self.groq_api_key or self.openai_api_key or "").strip()
+
+    @property
+    def llm_base_url(self) -> str:
+        if (self.groq_api_key or "").strip():
+            return "https://api.groq.com/openai/v1"
+        return (self.openai_base_url or "https://api.openai.com/v1").rstrip("/")
+
+    @property
+    def llm_model(self) -> str:
+        model = (self.openai_model or "").strip()
+        if (self.groq_api_key or "").strip():
+            # Modelos OpenAI não rodam na Groq; default leve e rápido no free tier
+            if not model or model.startswith("gpt-") or model.startswith("o1"):
+                return "llama-3.1-8b-instant"
+        return model or "gpt-4o-mini"
 
     @property
     def database_url(self) -> str:
