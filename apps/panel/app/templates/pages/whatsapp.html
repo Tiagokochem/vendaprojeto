@@ -20,12 +20,22 @@
     </ol>
 
     <h1 class="mt-6 text-2xl font-semibold tracking-tight">Conectar WhatsApp</h1>
-    <p class="text-sm text-stone-500 mt-1">Passo 2 · idade do número + conexão + teste do bot</p>
+    <p class="text-sm text-stone-500 mt-1">Passo 2 · idade do número + QR + teste do bot</p>
 
     {% if flash == 'chip_ok' %}
     <p class="mt-3 text-sm text-teal-800">Idade do número salva. O limite de envio foi recalculado.</p>
     {% elif flash == 'chip_erro' %}
     <p class="mt-3 text-sm text-amber-800">Opção inválida. Escolha de novo.</p>
+    {% elif flash == 'connect_ok' or flash == 'qr_pendente' %}
+    <p class="mt-3 text-sm text-teal-800">Instância pronta. Escaneie o QR abaixo.</p>
+    {% elif flash == 'already_open' %}
+    <p class="mt-3 text-sm text-teal-800">Este WhatsApp já estava conectado.</p>
+    {% elif flash == 'connect_erro' %}
+    <p class="mt-3 text-sm text-amber-800">Não deu para criar a instância. Tente de novo em alguns segundos.</p>
+    {% elif flash == 'evo_missing' %}
+    <p class="mt-3 text-sm text-amber-800">Evolution não configurada no servidor (AUTHENTICATION_API_KEY).</p>
+    {% elif flash == 'disconnected' %}
+    <p class="mt-3 text-sm text-stone-600">WhatsApp desconectado.</p>
     {% endif %}
 
     <div class="mt-6 rounded-xl border border-stone-200 bg-white p-6 space-y-4">
@@ -33,7 +43,6 @@
         <h2 class="font-medium text-sm">Há quanto tempo este número está ativo?</h2>
         <p class="text-xs text-stone-500 mt-1">
           Isso define o ponto de partida. Número novo começa baixo; número antigo libera mais cedo.
-          Depois o limite sobe aos poucos.
         </p>
         <form method="post" action="/app/whatsapp/chip-age" class="mt-3 space-y-2">
           {% for opt in chip_ages %}
@@ -71,8 +80,8 @@
 
       {% if settings and settings.evo_status == 'open' and not settings.smoke_ok %}
       <p class="text-sm text-amber-900 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-        WhatsApp conectado. <strong>Mande “oi” deste número para a conversa do bot</strong>.
-        O bot responde e libera os envios do dia.
+        WhatsApp conectado. <strong>Mande “oi” deste número para a própria conversa do bot</strong>
+        (ou de outro celular para este número). O bot responde e libera os envios.
       </p>
       {% endif %}
 
@@ -83,20 +92,19 @@
       </p>
       {% endif %}
 
-      <p class="text-sm"><span class="text-stone-500">Status:</span>
-        <span class="font-medium">{{ evo_label }}</span>
-      </p>
-
       {% if not evolution_configured %}
       <p class="text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-        Conexão WhatsApp ainda não configurada no servidor. Peça ao admin para ligar a Evolution.
+        Evolution ainda não está no ar neste ambiente. Defina <code>AUTHENTICATION_API_KEY</code>
+        e suba o serviço <code>evolution</code> no Docker Compose.
       </p>
       {% endif %}
 
-      <div class="flex flex-wrap gap-2">
+      {% include "partials/whatsapp_qr.html" %}
+
+      <div class="flex flex-wrap gap-2 pt-2">
         <form method="post" action="/app/whatsapp/connect">
           <button class="rounded-lg bg-teal-700 text-white px-4 py-2 text-sm" {% if not evolution_configured %}disabled{% endif %}>
-            Conectar
+            Conectar / Gerar QR
           </button>
         </form>
         <form method="post" action="/app/whatsapp/sync">
@@ -111,7 +119,7 @@
         <summary class="cursor-pointer text-stone-500 hover:text-stone-800">Detalhes técnicos</summary>
         <div class="mt-2 space-y-2 rounded-lg border border-stone-100 bg-stone-50 p-3 text-xs text-stone-600">
           <p>Instância: <code class="bg-white px-1 rounded">{{ instance }}</code></p>
-          <p>Status bruto: <code>{{ settings.evo_status if settings else 'disconnected' }}</code></p>
+          <p>Status bruto: <code>{{ evo_status }}</code></p>
           <p>Webhook inbound: <code>/webhook/evolution/{{ user.tenant_id }}</code></p>
           {% if sync_detail %}
           <p>Sync: {{ sync_detail }}</p>

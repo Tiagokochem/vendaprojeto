@@ -28,8 +28,12 @@ class Settings(BaseSettings):
     openai_api_key: str = ""
     openai_model: str = "gpt-4o-mini"
 
-    evolution_base_url: str = "http://127.0.0.1:8081"
+    evolution_base_url: str = "http://127.0.0.1:8091"
     authentication_api_key: str = ""
+    # URL que a Evolution usa para chamar o painel (rede Docker: http://panel:8088)
+    evolution_webhook_base: str = ""
+    # URL pública do Manager Evolution (browser)
+    evolution_server_url: str = "http://127.0.0.1:8091"
     webhook_hmac_secret: str = ""
 
     apify_token: str = ""

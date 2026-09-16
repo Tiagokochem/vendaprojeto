@@ -60,6 +60,12 @@ def _claim_webhook(tenant_id: str, external_id: str | None) -> bool:
 async def evolution_webhook(tenant_id: str, request: Request):
     from app.config import settings
     from app.services import ratelimit
+    import uuid as uuid_mod
+
+    try:
+        uuid_mod.UUID(str(tenant_id))
+    except (ValueError, TypeError):
+        return JSONResponse({"ok": False, "error": "tenant"}, status_code=404)
 
     client = request.client.host if request.client else "unknown"
     if not ratelimit.allow(f"wh:{tenant_id}:{client}", limit=90, window_seconds=60):
@@ -86,7 +92,17 @@ async def evolution_webhook(tenant_id: str, request: Request):
         return JSONResponse({"ok": False, "error": "invalid_json"}, status_code=400)
 
     event = body.get("event") or body.get("type") or ""
-    if event and "messages.upsert" not in str(event) and "MESSAGE" not in str(event).upper():
+    event_l = str(event).lower()
+
+    # Conexão / QR escaneado
+    if "connection" in event_l or "CONNECTION" in str(event).upper():
+        from app.services import evolution as evo_svc
+
+        state = evo_svc.parse_connection_state(body)
+        evo_svc.set_local_status(tenant_id, state)
+        return JSONResponse({"ok": True, "connection": state})
+
+    if event and "messages.upsert" not in event_l and "MESSAGE" not in str(event).upper():
         if "data" not in body and "message" not in body:
             return JSONResponse({"ok": True, "skipped": "event"})
 

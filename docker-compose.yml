@@ -18,6 +18,46 @@ services:
       timeout: 5s
       retries: 10
 
+  redis:
+    image: redis:7-alpine
+    container_name: vendaprojeto_redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+
+  evolution:
+    image: evoapicloud/evolution-api:v2.2.3
+    container_name: vendaprojeto_evolution
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    ports:
+      - "${EVOLUTION_HOST_PORT:-8091}:8080"
+    environment:
+      SERVER_URL: ${EVOLUTION_SERVER_URL:-http://127.0.0.1:8091}
+      AUTHENTICATION_API_KEY: ${AUTHENTICATION_API_KEY}
+      DATABASE_ENABLED: "true"
+      DATABASE_PROVIDER: postgresql
+      DATABASE_CONNECTION_URI: postgresql://${POSTGRES_USER:-venda}:${POSTGRES_PASSWORD:-venda_dev_pass}@postgres:5432/${POSTGRES_DB:-vendaprojeto}?schema=evolution_api
+      DATABASE_CONNECTION_CLIENT_NAME: vendaprojeto_evolution
+      CACHE_REDIS_ENABLED: "true"
+      CACHE_REDIS_URI: redis://redis:6379/0
+      CACHE_REDIS_PREFIX_KEY: vendaprojeto_evo
+      CACHE_LOCAL_ENABLED: "false"
+      LOG_LEVEL: ERROR,WARN,INFO
+      LOG_BAILEYS: error
+      DEL_INSTANCE: "false"
+      CONFIG_SESSION_PHONE_CLIENT: Ubuntu
+      CONFIG_SESSION_PHONE_NAME: Chrome
+      DOCKER_ENV: "true"
+      WEBHOOK_GLOBAL_ENABLED: "false"
+    volumes:
+      - evolution_instances:/evolution/instances
+
   panel:
     build:
       context: .
@@ -27,10 +67,14 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      evolution:
+        condition: service_started
     env_file: .env
     environment:
       POSTGRES_HOST: postgres
       POSTGRES_PORT: "5432"
+      EVOLUTION_BASE_URL: http://evolution:8080
+      EVOLUTION_WEBHOOK_BASE: http://panel:8088
     ports:
       - "${PANEL_PORT:-8088}:8088"
       - "8000:8088"
@@ -41,3 +85,5 @@ services:
 
 volumes:
   postgres_data:
+  redis_data:
+  evolution_instances:
