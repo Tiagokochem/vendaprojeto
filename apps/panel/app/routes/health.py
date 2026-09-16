@@ -42,7 +42,8 @@ async def health():
             "checks": checks,
             "llm": {
                 "configured": checks["llm"],
-                "model": settings.openai_model,
+                "model": settings.llm_model,
+                "base_url": settings.llm_base_url,
             },
             "evolution": {"configured": checks["evolution"]},
             "apify": {"configured": checks["apify"]},
